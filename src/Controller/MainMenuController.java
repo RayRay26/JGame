@@ -7,10 +7,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.text.Text;
 
 public class MainMenuController {
 	
-	@FXML TextField txtField;
+	@FXML Text/*Field*/ txtField;
 	@FXML Button levelsButton, endlessButton, helpButton;
 	@FXML ToggleButton sfxToggle, musicToggle;
 	
@@ -21,19 +22,24 @@ public class MainMenuController {
 		main = mainIn;
 	}
 	
+	public void handleButton(){
+		
+	}
+	
 	//TODO 
 	//Fill in what button calls should do
-	public void handleButton(){
-		if(levelsButton.isPressed()){
-			//run game
-		}
-		else if(endlessButton.isPressed()){
-			//run endless game
-		}
-		else if(helpButton.isPressed()){
-			//toggle to help screen
-			
-		}
+	public void handleLevelsButton(){
+		Game game = new Game();
+		game.runGame();
+	}
+	
+	public void handleEndlessButton(){
+		Game game = new Game();
+		game.runGame();
+	}
+	
+	public void handleHelpButton(){
+		
 	}
 	
 	//handles toggle buttons
