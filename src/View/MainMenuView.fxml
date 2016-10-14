@@ -16,17 +16,17 @@
                   <Font size="48.0" />
                </font>
             </Text>
-            <Button fx:id="levelsButton" layoutX="258.0" layoutY="181.0" mnemonicParsing="false" onAction="#handleButton" style="-fx-background-color: #000080; -fx-text-fill: #FFFFFF; -fx-border-width: 1px; -fx-border-color: #FFFFFF;" text="Play Levels">
+            <Button fx:id="levelsButton" layoutX="258.0" layoutY="181.0" mnemonicParsing="false" onAction="#handleLevelsButton" style="-fx-background-color: #000080; -fx-text-fill: #FFFFFF; -fx-border-width: 1px; -fx-border-color: #FFFFFF;" text="Play Levels">
                <font>
                   <Font name="System Italic" size="13.0" />
                </font>
             </Button>
-            <Button fx:id="endlessButton" layoutX="254.0" layoutY="244.0" mnemonicParsing="false" onAction="#handleButton" style="-fx-background-color: #000080; -fx-text-fill: #FFFFFF; -fx-border-width: 1px; -fx-border-color: #FFFFFF;" text="Play Endless">
+            <Button fx:id="endlessButton" layoutX="254.0" layoutY="244.0" mnemonicParsing="false" onAction="#handleEndlessButton" style="-fx-background-color: #000080; -fx-text-fill: #FFFFFF; -fx-border-width: 1px; -fx-border-color: #FFFFFF;" text="Play Endless">
                <font>
                   <Font size="13.0" />
                </font>
             </Button>
-            <Button fx:id="helpButton" layoutX="276.0" layoutY="306.0" mnemonicParsing="false" onAction="#handleButton" style="-fx-background-color: #000080; -fx-text-fill: #FFFFFF; -fx-border-width: 1px; -fx-border-color: #FFFFFF;" text="Help">
+            <Button fx:id="helpButton" layoutX="276.0" layoutY="306.0" mnemonicParsing="false" onAction="#handleHelpButton" style="-fx-background-color: #000080; -fx-text-fill: #FFFFFF; -fx-border-width: 1px; -fx-border-color: #FFFFFF;" text="Help">
                <font>
                   <Font name="System Italic" size="13.0" />
                </font>
