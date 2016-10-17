@@ -72,6 +72,7 @@ public class Player {
 		glVertex2f(x + 2, y);
 		glVertex2f(x + 2, y + 2);
 		glVertex2f(x, y + 2);
+		glEnd();
 		
 		x += 1;
 		y += slope;
