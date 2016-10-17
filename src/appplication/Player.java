@@ -61,10 +61,8 @@ public class Player {
 		float x = this.x; //copying x and y values
 		float y = this.y; //so movement doesnt mess with shots
 		
-		length = (mouseX - (int) x);
-		height = (mouseY - (int) y);
-		//pythagorian (however that may be spelled?)
-		slope = Math.sqrt((Math.pow(length, 2) + Math.pow(height, 2)));
+		// (y2 - y1) / (x2 - x1)
+		slope = (mouseY - y)/(mouseX - x);
 		
 		//run loop incrementing shot x, y values until shot is off screen
 		while((x < Display.getWidth() && x > 0) || (y < Display.getHeight() && y > 0))
