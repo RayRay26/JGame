@@ -2,6 +2,8 @@ package Controller;
 
 
 
+import Model.GameObject;
+import Model.Enemy;
 import application.MainMenu;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -30,12 +32,12 @@ public class MainMenuController {
 	//Fill in what button calls should do
 	public void handleLevelsButton(){
 		Game game = new Game();
-		game.runGame();
+		game.run();
 	}
 	
 	public void handleEndlessButton(){
 		Game game = new Game();
-		game.runGame();
+		game.run();
 	}
 	
 	public void handleHelpButton(){
