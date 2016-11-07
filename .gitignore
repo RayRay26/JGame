@@ -1,0 +1,11 @@
+.classpath
+.build.fxbuild
+.settings
+org.eclipaw.jdt.core.prefs
+bin/
+.settings/
+CSCI3300_Project/lib/Slick/
+CSCI3300_Project/build.fxbuild
+.metadata/
+.recommenders/
+lib/slick/
