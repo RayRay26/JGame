@@ -31,12 +31,12 @@
                   <Font name="System Italic" size="13.0" />
                </font>
             </Button>
-            <ToggleButton fx:id="sfxToggle" layoutX="529.0" layoutY="472.0" mnemonicParsing="false" text="Sound FX">
+            <ToggleButton fx:id="sfxToggle" layoutX="529.0" layoutY="472.0" mnemonicParsing="false" onAction="#handleSFXToggle" text="Sound FX">
                <font>
                   <Font size="8.0" />
                </font>
             </ToggleButton>
-            <ToggleButton fx:id="musicToggle" layoutX="489.0" layoutY="472.0" mnemonicParsing="false" text="Music">
+            <ToggleButton fx:id="musicToggle" layoutX="489.0" layoutY="472.0" mnemonicParsing="false" onAction="#handleMusicToggle" text="Music">
                <font>
                   <Font size="8.0" />
                </font>

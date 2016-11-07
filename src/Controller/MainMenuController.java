@@ -30,12 +30,6 @@ public class MainMenuController {
 	Stage stage = new Stage();
 	Scene scene;
 	Parent root;
-	// @FXML
-	// ImageView playerPicture = new ImageView(new
-	// Image("/art/player_strip4.png"));
-	// @FXML
-	// ImageView enemyPicture = new ImageView(new
-	// Image("/art/robotmelee_strip4.png"));
 	@FXML
 	Text/* Field */ txtField;
 	@FXML
@@ -92,20 +86,20 @@ public class MainMenuController {
 
 	
 	public void handleMusicToggle() {
-//		
-//		try{										//this didnt work unless full path for some reason?						//this isnt working unless i put the complete path to the audio file?
-//			AudioInputStream ais = AudioSystem.getAudioInputStream(new File("C:/Users/grant/Documents/CSCI3300/CSCI3300_Project/src/art/test.wav"));
-//			Clip audio = AudioSystem.getClip();
-//			if(musicToggle.isSelected()){
-//				audio.start();;
-//			}
-//			else{
-//				audio.stop();
-//			}
-//		}catch(Exception e){
-//			System.out.println("Error with audio");
-//			e.printStackTrace();
-//		}
+		
+/*		try{																//this isnt working unless i put the complete path to the audio file?
+			AudioInputStream ais = AudioSystem.getAudioInputStream(new File("C:/Users/grabt/Documents/CSCI3300/CSCI3300_Project/src/art/test.wav"));
+			Clip audio = AudioSystem.getClip();
+			if(musicToggle.isSelected()){
+				audio.start();;
+			}
+			else{
+				audio.stop();
+			}
+		}catch(Exception e){
+			System.out.println("Error with audio");
+			e.printStackTrace();
+		}*/
 	}
 	
 	private boolean isSFXOn = true;
