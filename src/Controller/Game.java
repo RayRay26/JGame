@@ -36,7 +36,7 @@ public class Game {
 	private Texture health3;
 	private Texture health2;
 	private Texture health1;
-	private int health = 4;
+	private int health = 5;
 	private Texture background;
 	private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 	private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
@@ -61,7 +61,7 @@ public class Game {
 			//draws background then player on top of background
 			drawBackGround();
 			//draws health meter
-			//drawHealth();
+			drawHealth();
 			render();
 			/*******************
 			 * GAME LOOP
@@ -94,10 +94,13 @@ public class Game {
 			
 			//refreshing and drawing the enemies/bullets
 			refreshDrawings();
+			if(isPlayerHit()){
+				health--;
+			}
 
 			
 			
-			if(health == 0){
+			if(health <= 0){
 				gameOver();
 			}
 			
@@ -126,11 +129,11 @@ public class Game {
 			bulletTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/spr_laser.png"));
 			robotTexture  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot.png"));
 			background	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/floor.png"));
-			health5	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health5.png"));
-			health4	      = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health4.png"));
-			health3	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health3.png"));
-			health2		  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health2.png"));
-			health1	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health1.png"));
+			health5	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar5.png"));
+			health4	      = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar4.png"));
+			health3	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar3.png"));
+			health2		  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar2.png"));
+			health1	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar1.png"));
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -352,6 +355,7 @@ public class Game {
 	
 	public void gameOver(){
 		//TODO GAMEOVER STUFF
+		System.exit(0);
 	}
 	
 	public void drawHealth(){
@@ -380,16 +384,28 @@ public class Game {
 		GL11.glBegin(GL11.GL_QUADS);
 		{
 			GL11.glTexCoord2f(0, 0);
-			GL11.glVertex2f(200, 50);
+			GL11.glVertex2f(0, 0);
 			GL11.glTexCoord2f(1, 0);
-			GL11.glVertex2f(600, 50);
+			GL11.glVertex2f(80, 0);
 			GL11.glTexCoord2f(1, 1);
-			GL11.glVertex2f(600, 100);
+			GL11.glVertex2f(80, 16);
 			GL11.glTexCoord2f(0, 1);
-			GL11.glVertex2f(200, 100);
+			GL11.glVertex2f(0, 16);
 		}
 		GL11.glEnd();
 	}
 
+	public boolean isPlayerHit(){
+		boolean isHit = false;
+		
+		for(int i = 0; i < enemies.size(); i++){
+			if(enemies.get(i).getX() == playerX && enemies.get(i).getY() == playerY){
+				enemies.remove(i);
+				isHit = true;
+			}
+		}
+		
+		return isHit;
+	}
 	
 }
