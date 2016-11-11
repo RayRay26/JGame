@@ -24,8 +24,21 @@ public class Enemy {
 		this.y = y;
 	}
 	
+	public void incrementX(){
+		this.x++;
+	}
 	
+	public void incrementY(){
+		this.y++;
+	}
 	
+	public void decrementX(){
+		this.x--;
+	}
+	
+	public void decrementY(){
+		this.y--;
+	}
 	
 	public void setX(int main){
 		this.x = main;

@@ -3,7 +3,7 @@ package Model;
 public class Bullet {
 
 	private int currentX, currentY, mouseX, mouseY, slope;
-	private boolean isInPositiveDirection;
+	private boolean isInPositiveX, isInPositiveY;
 	
 	public Bullet(int cx, int cy, int mx, int my){
 		this.currentX = cx;
@@ -11,10 +11,15 @@ public class Bullet {
 		this.mouseX   = mx;
 		this.mouseY   = my;
 		
-		if(cx < mx)
-			this.isInPositiveDirection = true;
+		if(cx <= mx)
+			this.isInPositiveX = true;
 		else
-			this.isInPositiveDirection = false;
+			this.isInPositiveX = false;
+		
+		if(cy <= my)
+			this.isInPositiveY = false;
+		else
+			this.isInPositiveY = true;
 		
 		try{
 			slope = (int)((double)((my-cy)/(mx-cx)));
@@ -57,13 +62,21 @@ public class Bullet {
 	}
 	
 	public void incrementValue(){
-		if(isInPositiveDirection){
+		if(isInPositiveX && isInPositiveY){
 			currentX++;
-			currentY += slope;
+			currentY++;
+		}
+		else if(isInPositiveX && !isInPositiveY){
+			currentX++;
+			currentY--;
+		}
+		else if(!isInPositiveX && isInPositiveY){
+			currentX--;
+			currentY++;
 		}
 		else{
 			currentX--;
-			currentY += slope;
+			currentY--;
 		}
 	}
 	
