@@ -11,15 +11,15 @@ public class Bullet {
 		this.mouseX   = mx;
 		this.mouseY   = my;
 		
-		if(cx <= mx)
+		if(mx > 400)
 			this.isInPositiveX = true;
 		else
 			this.isInPositiveX = false;
 		
-		if(cy <= my)
-			this.isInPositiveY = false;
-		else
+		if(my < 300)
 			this.isInPositiveY = true;
+		else
+			this.isInPositiveY = false;
 		
 		try{
 			slope = (int)((double)((my-cy)/(mx-cx)));

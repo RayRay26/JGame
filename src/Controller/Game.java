@@ -31,12 +31,19 @@ public class Game {
 	private Texture playerTexture;
 	private Texture bulletTexture;
 	private Texture robotTexture;
+	private Texture health5;
+	private Texture health4;
+	private Texture health3;
+	private Texture health2;
+	private Texture health1;
+	private int health = 4;
 	private Texture background;
-	public Timer t = new Timer();
 	private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 	private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
 	private ArrayList<Integer> indexToRemove = new ArrayList<Integer>();
-
+	private int timer = 0;
+	private int shootTimer = 20;
+	
 	public void run() {
 
 		initGL(WIDTH, HEIGHT);
@@ -53,6 +60,8 @@ public class Game {
 			
 			//draws background then player on top of background
 			drawBackGround();
+			//draws health meter
+			//drawHealth();
 			render();
 			/*******************
 			 * GAME LOOP
@@ -62,32 +71,44 @@ public class Game {
 			playerMovement();
 			enemyMovement();
 			
-			
-			if(Mouse.isButtonDown(1)){
-				enemySpawn();
+			//timer increases every frame aka 60/sec
+			if(timer < 6000){
+				if(timer % 100 == 0)
+					enemySpawn();
 			}
+			else if(timer < 8000){
+				if(timer % 50 == 0)
+					enemySpawn();
+			}
+			else{
+				if(timer % 25 == 0)
+					enemySpawn();
+			}
+				
 			
 			// if left click is down shoot
-			if (Mouse.isButtonDown(0))
+			if (Mouse.isButtonDown(0) && shootTimer > 20 ){
 				playerShoot();
+				shootTimer = 0;
+			}
 			
 			//refreshing and drawing the enemies/bullets
 			refreshDrawings();
 
 			
 			
-			if(enemies.isEmpty()){
+			if(health == 0){
 				gameOver();
 			}
 			
-
+			shootTimer++;
+			timer++;
 			/*******************
 			 * END GAME LOOP
 			 **************************************************/
 			Display.update();
 			Display.sync(60);
 			
-
 			
 
 			if (Display.isCloseRequested()) {
@@ -105,6 +126,11 @@ public class Game {
 			bulletTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/spr_laser.png"));
 			robotTexture  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot.png"));
 			background	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/floor.png"));
+			health5	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health5.png"));
+			health4	      = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health4.png"));
+			health3	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health3.png"));
+			health2		  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health2.png"));
+			health1	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/health1.png"));
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -247,7 +273,7 @@ public class Game {
 			for(int j = 0; j < enemies.size(); j++){
 				//if bullet is greater than enemyX but less than enemyX + texture width despawn
 				if(bullets.get(i).getCurrentX() + (int)(bulletTexture.getTextureWidth()/2) >= enemies.get(j).getX() - robotTexture.getTextureWidth() && bullets.get(i).getCurrentX() + (int)(bulletTexture.getTextureWidth()/2) <= enemies.get(j).getX()
-				&& bullets.get(i).getCurrentY() - (int)(bulletTexture.getTextureHeight()/2) >= enemies.get(j).getY() + robotTexture.getTextureHeight() && bullets.get(i).getCurrentY() - (int)(bulletTexture.getTextureWidth()/2) <= enemies.get(j).getX()){
+				&& bullets.get(i).getCurrentY() + (int)(bulletTexture.getTextureHeight()/2) >= enemies.get(j).getY() - robotTexture.getTextureHeight() && bullets.get(i).getCurrentY() + (int)(bulletTexture.getTextureWidth()/2) <= enemies.get(j).getX()){
 					enemies.remove(j);//remove enemy if hit
 				}
 			}
@@ -326,6 +352,43 @@ public class Game {
 	
 	public void gameOver(){
 		//TODO GAMEOVER STUFF
+	}
+	
+	public void drawHealth(){
+		
+		switch(health){
+		case 5:
+			health5.bind();
+			break;
+		case 4:
+			health4.bind();
+			break;
+		case 3:
+			health3.bind();
+			break;
+		case 2:
+			health2.bind();
+			break;
+		case 1:
+			health1.bind();
+			break;
+		default:
+			health5.bind();
+		}
+		
+		
+		GL11.glBegin(GL11.GL_QUADS);
+		{
+			GL11.glTexCoord2f(0, 0);
+			GL11.glVertex2f(200, 50);
+			GL11.glTexCoord2f(1, 0);
+			GL11.glVertex2f(600, 50);
+			GL11.glTexCoord2f(1, 1);
+			GL11.glVertex2f(600, 100);
+			GL11.glTexCoord2f(0, 1);
+			GL11.glVertex2f(200, 100);
+		}
+		GL11.glEnd();
 	}
 
 	
