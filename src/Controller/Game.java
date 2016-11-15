@@ -4,6 +4,7 @@ import java.math.*;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.io.Console;
 import java.io.IOException;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -20,99 +21,81 @@ import org.newdawn.slick.util.ResourceLoader;
 
 import Model.Bullet;
 import Model.Enemy;
+import Model.Player;
+import View.UI;
 
 public class Game {
 
-	public static final int WIDTH = 800;
-	public static final int HEIGHT = 600;
-	private int playerX = 600;
-	private int playerY = 400;
+	public static final int WIDTH = 400;
+	public static final int HEIGHT = 300;
+	private Player player;
 	public static AppGameContainer appgc;
-	private Texture playerTexture;
-	private Texture bulletTexture;
-	private Texture robotTexture;
-	private Texture health5;
-	private Texture health4;
-	private Texture health3;
-	private Texture health2;
-	private Texture health1;
-	private int health = 5;
 	private Texture background;
 	private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 	private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
-	private ArrayList<Integer> indexToRemove = new ArrayList<Integer>();
 	private int timer = 0;
-	private int shootTimer = 20;
-	
+
 	public void run() {
 
-		initGL(WIDTH, HEIGHT);
+		initGL(WIDTH * 2, HEIGHT * 2);
+		GL11.glScaled(2, 2, 1);
 		init();
-		
-		//spawn 20 enemies to begin with
-		for(int i = 0; i < 20; i++){
-			enemySpawn();
-		}
-		
+
 		while (true) { // Game Loop
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-			
-			
-			//draws background then player on top of background
+
+			// draws background then player on top of background
 			drawBackGround();
-			//draws health meter
-			drawHealth();
-			render();
+			drawPlayer();
+			// draws health meter
+			UI.drawHealth(player.getHealth());
 			/*******************
 			 * GAME LOOP
 			 **************************************************/
 
-			//moves player then checks reletive position of player then moves enemy
+			// moves player then checks relative position of player then moves
+			// enemy
 			playerMovement();
 			enemyMovement();
-			
-			//timer increases every frame aka 60/sec
-			if(timer < 6000){
-				if(timer % 100 == 0)
+
+			// timer increases every frame aka 60/sec
+			if (timer < 6000) {
+				if (timer % 100 == 0)
 					enemySpawn();
-			}
-			else if(timer < 8000){
-				if(timer % 50 == 0)
+			} else if (timer < 8000) {
+				if (timer % 50 == 0)
 					enemySpawn();
-			}
-			else{
-				if(timer % 25 == 0)
+			} else {
+				if (timer % 25 == 0)
 					enemySpawn();
-			}
-				
-			
-			// if left click is down shoot
-			if (Mouse.isButtonDown(0) && shootTimer > 20 ){
-				playerShoot();
-				shootTimer = 0;
-			}
-			
-			//refreshing and drawing the enemies/bullets
-			refreshDrawings();
-			if(isPlayerHit()){
-				health--;
 			}
 
+			player.update();
 			
-			
-			if(health <= 0){
+			// if left click is down shoot
+			if (Mouse.isButtonDown(0)) {
+				Bullet bullet = player.shoot();
+				if(bullet != null)
+					bullets.add(bullet);
+			}
+
+			// refreshing and drawing the enemies/bullets
+			refreshDrawings();
+			boolean wasHit = checkPlayerHit();
+			if (wasHit) {
+				player.takeDamage();
+			}
+
+			if (player.getHealth() <= 0) {
 				gameOver();
 			}
-			
-			shootTimer++;
+
 			timer++;
 			/*******************
 			 * END GAME LOOP
 			 **************************************************/
 			Display.update();
 			Display.sync(60);
-			
-			
 
 			if (Display.isCloseRequested()) {
 				Display.destroy();
@@ -125,19 +108,22 @@ public class Game {
 
 		try {
 			// loading textures to the screen
-			playerTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player.png"));
-			bulletTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/spr_laser.png"));
-			robotTexture  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot.png"));
-			background	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/floor.png"));
-			health5	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar5.png"));
-			health4	      = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar4.png"));
-			health3	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar3.png"));
-			health2		  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar2.png"));
-			health1	  	  = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar1.png"));
-			
+			Player.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player.png"));
+			Bullet.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/spr_laser.png"));
+			Enemy.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot.png"));
+			background = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/floor.png"));
+			UI.health5 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar5.png"));
+			UI.health4 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar4.png"));
+			UI.health3 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar3.png"));
+			UI.health2 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar2.png"));
+			UI.health1 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar1.png"));
+			UI.health0 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar0.png"));
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		player = new Player(300, 200);
 	}
 
 	// creating the openGL window
@@ -169,172 +155,123 @@ public class Game {
 	}
 
 	// this is drawing the player onto the screen
-	public void render() {
-		Color.white.bind();
-		playerTexture.bind();
-
-		GL11.glBegin(GL11.GL_QUADS);
-		{
-			GL11.glTexCoord2f(0, 0);
-			GL11.glVertex2f(playerX, playerY);
-			GL11.glTexCoord2f(1, 0);
-			GL11.glVertex2f(playerX + playerTexture.getTextureWidth(), playerY);
-			GL11.glTexCoord2f(1, 1);
-			GL11.glVertex2f(playerX + playerTexture.getTextureWidth(), playerY + playerTexture.getTextureHeight());
-			GL11.glTexCoord2f(0, 1);
-			GL11.glVertex2f(playerX, playerY + playerTexture.getTextureHeight());
-		}
-		GL11.glEnd();
+	public void drawPlayer() {
+		player.draw();
 	}
 
 	// the nested if statements account for the player gonig off screen
 	// the weird numbers for the if statements account for character padding
 	public void playerMovement() {
 		if (Keyboard.isKeyDown(Keyboard.KEY_W) || Keyboard.isKeyDown(Keyboard.KEY_UP)) {
-			if (playerY > -20)
-				playerY-=2;
-
-		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_S) || Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
-			if (playerY < 560)
-				playerY+=2;
-		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_D) || Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
-			if (playerX < 780)
-				playerX+=2;
+			if (player.getY() > 20)
+				player.setY(player.getY() - 2);
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_A) || Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
-			if (playerX > 0)
-				playerX-=2;
+			if (player.getX() > 20)
+				player.setX(player.getX() - 2);
+		}
+		if (Keyboard.isKeyDown(Keyboard.KEY_S) || Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
+			if (player.getY() < HEIGHT - 20)
+				player.setY(player.getY() + 2);
+		}
+		if (Keyboard.isKeyDown(Keyboard.KEY_D) || Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
+			if (player.getX() < WIDTH - 20)
+				player.setX(player.getX() + 2);
 		}
 	}
 
 	public void enemySpawn() {
 		int x, y;
-		do {//an attempt to not spawn the robot on the enemy
-			x = (int) Math.floor(Math.random() * 801);
-			y = (int) Math.floor(Math.random() * 601);
-		} while (x + 10 > playerX && y > playerX + 10);
+		do {// an attempt to not spawn the robot on the enemy
+			x = (int) Math.floor(Math.random() * WIDTH);
+			y = (int) Math.floor(Math.random() * HEIGHT);
+		} while (Math.sqrt(Math.pow(x - player.getX(), 2) + Math.pow(y - player.getY(), 2)) < 80);
 		Enemy robot = new Enemy(x, y);
 		enemies.add(robot);
-		enemyDraw(robot);
+		robot.draw();
 	}
-	
+
 	public void playerShoot() {
 
-		Bullet bullet = new Bullet(playerX, playerY, Mouse.getX(), Mouse.getY());
-		bullets.add(bullet);
+		
 	}
 
-	
-	public void bulletDraw(Bullet bullet){
+	public void refreshDrawings() {
 
-		bulletTexture.bind();
-		
-		GL11.glBegin(GL11.GL_QUADS);
-		{
-			GL11.glTexCoord2f(0, 0);
-			GL11.glVertex2f(bullet.getCurrentX(), bullet.getCurrentY());
-			GL11.glTexCoord2f(1, 0);
-			GL11.glVertex2f(bullet.getCurrentX() + bulletTexture.getTextureWidth(), bullet.getCurrentY());
-			GL11.glTexCoord2f(1, 1);
-			GL11.glVertex2f(bullet.getCurrentX() + bulletTexture.getTextureWidth(), bullet.getCurrentY() + bulletTexture.getTextureHeight());
-			GL11.glTexCoord2f(0, 1);
-			GL11.glVertex2f(bullet.getCurrentX(), bullet.getCurrentY() + bulletTexture.getTextureHeight());
-		}
-		GL11.glEnd();
-	}
-	
-	public void enemyDraw(Enemy robot){
-		
-		robotTexture.bind();
-		
-		GL11.glBegin(GL11.GL_QUADS);
-		{
-			GL11.glTexCoord2f(0, 0);
-			GL11.glVertex2f(robot.getX(), robot.getY());
-			GL11.glTexCoord2f(1, 0);
-			GL11.glVertex2f(robot.getX() + robotTexture.getTextureWidth(), robot.getY());
-			GL11.glTexCoord2f(1, 1);
-			GL11.glVertex2f(robot.getX() + robotTexture.getTextureWidth(), robot.getY() + robotTexture.getTextureHeight());
-			GL11.glTexCoord2f(0, 1);
-			GL11.glVertex2f(robot.getX(), robot.getY() + robotTexture.getTextureHeight());
-		}
-		GL11.glEnd();
-	}
-	
-	public void refreshDrawings(){
-		
-		//spawning bullets
-		for(int i = 0; i < bullets.size(); i++){
+		// spawning bullets
+		for (int i = 0; i < bullets.size(); i++) {
 			bullets.get(i).incrementValue();
-			bulletDraw(bullets.get(i));
+			bullets.get(i).draw();
 		}
-		
-		//despawning hit enemies
-		for(int i = 0; i < bullets.size(); i++){
-			for(int j = 0; j < enemies.size(); j++){
-				//if bullet is greater than enemyX but less than enemyX + texture width despawn
-				if(bullets.get(i).getCurrentX() + (int)(bulletTexture.getTextureWidth()/2) >= enemies.get(j).getX() - robotTexture.getTextureWidth() && bullets.get(i).getCurrentX() + (int)(bulletTexture.getTextureWidth()/2) <= enemies.get(j).getX()
-				&& bullets.get(i).getCurrentY() + (int)(bulletTexture.getTextureHeight()/2) >= enemies.get(j).getY() - robotTexture.getTextureHeight() && bullets.get(i).getCurrentY() + (int)(bulletTexture.getTextureWidth()/2) <= enemies.get(j).getX()){
-					enemies.remove(j);//remove enemy if hit
+
+		// despawning hit enemies
+		int bulletWidth = Bullet.texture.getTextureWidth();
+		int bulletHeight = Bullet.texture.getTextureHeight();
+		int robotWidth = Enemy.texture.getTextureWidth();
+		int robotHeight = Enemy.texture.getTextureHeight();
+		for (int i = 0; i < bullets.size(); i++) {
+			for (int j = 0; j < enemies.size(); j++) {
+				// if bullet is greater than enemyX but less than enemyX +
+				// texture width despawn
+				if (bullets.get(i).getCurrentX() - (int) (bulletWidth / 2f) >= enemies.get(j).getX()
+						- (int) (robotWidth / 2f)
+						&& bullets.get(i).getCurrentX() + (int) (bulletWidth / 2f) <= enemies.get(j).getX()
+								+ (int) (robotWidth / 2f)
+						&& bullets.get(i).getCurrentY() - (int) (bulletHeight / 2f) >= enemies.get(j).getY()
+								- (int) (robotHeight / 2f)
+						&& bullets.get(i).getCurrentY() + (int) (bulletHeight / 2f) <= enemies.get(j).getY()
+								+ (int) (robotHeight / 2f)) {
+					enemies.remove(j);// remove enemy if hit
 				}
 			}
 		}
-		
 
-		//drawing enemies
-		for(int i = 0; i < enemies.size(); i++){
-			enemyDraw(enemies.get(i));
+		// drawing enemies
+		for (int i = 0; i < enemies.size(); i++) {
+			enemies.get(i).draw();
 		}
-		
-		
-		//remove bullets from array once they are out of bounds/memory conservation
-		for(int i = 0; i < bullets.size(); i++){
-			if(bullets.get(i).getCurrentX() > 900 || bullets.get(i).getCurrentX() < 0 || bullets.get(i).getCurrentY() < 0 || bullets.get(i).getCurrentY() > 900){
+
+		// remove bullets from array once they are out of bounds/memory
+		// conservation
+		for (int i = 0; i < bullets.size(); i++) {
+			if (bullets.get(i).getCurrentX() > WIDTH + 100 || bullets.get(i).getCurrentX() < -100
+					|| bullets.get(i).getCurrentY() < -100 || bullets.get(i).getCurrentY() > HEIGHT + 100) {
 				bullets.remove(i);
 			}
 		}
-		
+
 	}
-	
-	public void enemyMovement(){
-		for(int i = 0; i < enemies.size(); i++){
-			//checks position reletive to player then moves enemy
-			if(enemies.get(i).getX() < playerX && enemies.get(i).getY() < playerY){
+
+	public void enemyMovement() {
+		for (int i = 0; i < enemies.size(); i++) {
+			// checks position reletive to player then moves enemy
+			if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() < player.getY()) {
 				enemies.get(i).incrementX();
 				enemies.get(i).incrementY();
-			}
-			else if(enemies.get(i).getX() > playerX && enemies.get(i).getY() < playerY){
+			} else if (enemies.get(i).getX() > player.getX() && enemies.get(i).getY() < player.getY()) {
 				enemies.get(i).decrementX();
 				enemies.get(i).incrementY();
-			}
-			else if(enemies.get(i).getX() < playerX && enemies.get(i).getY() > playerY){
+			} else if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() > player.getY()) {
 				enemies.get(i).incrementX();
 				enemies.get(i).decrementY();
-			}
-			else if(enemies.get(i).getX() > playerX && enemies.get(i).getY() == playerY){
+			} else if (enemies.get(i).getX() > player.getX() && enemies.get(i).getY() == player.getY()) {
 				enemies.get(i).decrementX();
-			}
-			else if(enemies.get(i).getX() == playerX && enemies.get(i).getY() > playerY){
+			} else if (enemies.get(i).getX() == player.getX() && enemies.get(i).getY() > player.getY()) {
 				enemies.get(i).decrementY();
-			}
-			else if(enemies.get(i).getX() < playerX && enemies.get(i).getY() == playerY){
+			} else if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() == player.getY()) {
 				enemies.get(i).incrementX();
-			}
-			else if(enemies.get(i).getX() == playerX && enemies.get(i).getY() < playerY){
+			} else if (enemies.get(i).getX() == player.getX() && enemies.get(i).getY() < player.getY()) {
 				enemies.get(i).incrementY();
-			}	
-			else{
+			} else {
 				enemies.get(i).decrementX();
 				enemies.get(i).decrementY();
 			}
 		}
 	}
 
-	public void drawBackGround(){
-		for(int x = 0; x < 800; x += background.getTextureWidth()){
-			for(int y = 0; y < 600; y += background.getTextureHeight()){
+	public void drawBackGround() {
+		for (int x = 0; x < 800; x += background.getTextureWidth()) {
+			for (int y = 0; y < 600; y += background.getTextureHeight()) {
 				background.bind();
 
 				GL11.glBegin(GL11.GL_QUADS);
@@ -346,66 +283,28 @@ public class Game {
 					GL11.glTexCoord2f(1, 1);
 					GL11.glVertex2f(x + background.getTextureWidth(), y + background.getTextureHeight());
 					GL11.glTexCoord2f(0, 1);
-					GL11.glVertex2f(x, playerY + background.getTextureHeight());
+					GL11.glVertex2f(x, y + background.getTextureHeight());
 				}
 				GL11.glEnd();
 			}
 		}
 	}
-	
-	public void gameOver(){
-		//TODO GAMEOVER STUFF
+
+	public void gameOver() {
+		// TODO GAMEOVER STUFF
 		System.exit(0);
 	}
-	
-	public void drawHealth(){
-		
-		switch(health){
-		case 5:
-			health5.bind();
-			break;
-		case 4:
-			health4.bind();
-			break;
-		case 3:
-			health3.bind();
-			break;
-		case 2:
-			health2.bind();
-			break;
-		case 1:
-			health1.bind();
-			break;
-		default:
-			health5.bind();
-		}
-		
-		
-		GL11.glBegin(GL11.GL_QUADS);
-		{
-			GL11.glTexCoord2f(0, 0);
-			GL11.glVertex2f(0, 0);
-			GL11.glTexCoord2f(1, 0);
-			GL11.glVertex2f(80, 0);
-			GL11.glTexCoord2f(1, 1);
-			GL11.glVertex2f(80, 16);
-			GL11.glTexCoord2f(0, 1);
-			GL11.glVertex2f(0, 16);
-		}
-		GL11.glEnd();
-	}
 
-	public boolean isPlayerHit(){
+	public boolean checkPlayerHit() {
 		boolean isHit = false;
-		
-		for(int i = 0; i < enemies.size(); i++){
-			if(enemies.get(i).getX() == playerX && enemies.get(i).getY() == playerY){
+
+		for (int i = 0; i < enemies.size(); i++) {
+			if (enemies.get(i).getX() == player.getX() && enemies.get(i).getY() == player.getY()) {
 				enemies.remove(i);
 				isHit = true;
 			}
 		}
-		
+
 		return isHit;
 	}
-	
 }

@@ -5,15 +5,18 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.Image;
 
 public class Enemy {
+	public static Texture texture;
 	
 	private int x;
 	private int y;
@@ -56,6 +59,24 @@ public class Enemy {
 		return this.y;
 	}
 	
+	public void draw() {
+		texture.bind();
+
+		int textureWidth = texture.getTextureWidth();
+		int textureHeight = texture.getTextureHeight();
+		GL11.glBegin(GL11.GL_QUADS);
+		{
+			GL11.glTexCoord2f(0, 0);
+			GL11.glVertex2f(x - textureWidth / 2f, y - textureHeight / 2f);
+			GL11.glTexCoord2f(1, 0);
+			GL11.glVertex2f(x + textureWidth / 2f, y - textureHeight / 2f);
+			GL11.glTexCoord2f(1, 1);
+			GL11.glVertex2f(x + textureWidth / 2f, y + textureHeight / 2f);
+			GL11.glTexCoord2f(0, 1);
+			GL11.glVertex2f(x - textureWidth / 2f, y + textureHeight / 2f);
+		}
+		GL11.glEnd();
+	}
 	
 	
 	

@@ -1,89 +1,52 @@
 package Model;
 
-public class Bullet {
+import org.lwjgl.opengl.GL11;
+import org.newdawn.slick.opengl.Texture;
 
-	private int currentX, currentY, mouseX, mouseY, slope;
-	private boolean isInPositiveX, isInPositiveY;
+public class Bullet {
+	public static Texture texture;
+	
+	private double bulletSpeed = 4.0;
+	private double currentX, currentY, speedX, speedY;
 	
 	public Bullet(int cx, int cy, int mx, int my){
 		this.currentX = cx;
 		this.currentY = cy;
-		this.mouseX   = mx;
-		this.mouseY   = my;
-		
-		if(mx > 400)
-			this.isInPositiveX = true;
-		else
-			this.isInPositiveX = false;
-		
-		if(my < 300)
-			this.isInPositiveY = true;
-		else
-			this.isInPositiveY = false;
-		
-		try{
-			slope = (int)((double)((my-cy)/(mx-cx)));
-		}catch(ArithmeticException e){
-			slope = 1;
-		}
+		double xDiff = mx - cx;
+		double yDiff = my - cy;
+		double distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+		speedX = xDiff * bulletSpeed / distance;
+		speedY = yDiff * bulletSpeed / distance;
+	}
+	public int getCurrentX() {
+		return (int)currentX;
 	}
 	
-
-	public int getCurrentX() {
-		return currentX;
-	}
-
-	public void setCurrentX(int currentX) {
-		this.currentX = currentX;
-	}
-
 	public int getCurrentY() {
-		return currentY;
-	}
-
-	public void setCurrentY(int currentY) {
-		this.currentY = currentY;
-	}
-
-	public int getMouseX() {
-		return mouseX;
-	}
-
-	public void setMouseX(int mouseX) {
-		this.mouseX = mouseX;
-	}
-
-	public int getMouseY() {
-		return mouseY;
-	}
-
-	public void setMouseY(int mouseY) {
-		this.mouseY = mouseY;
+		return (int)currentY;
 	}
 	
 	public void incrementValue(){
-		if(isInPositiveX && isInPositiveY){
-			currentX++;
-			currentY++;
-		}
-		else if(isInPositiveX && !isInPositiveY){
-			currentX++;
-			currentY--;
-		}
-		else if(!isInPositiveX && isInPositiveY){
-			currentX--;
-			currentY++;
-		}
-		else{
-			currentX--;
-			currentY--;
-		}
+		currentX += speedX;
+		currentY += speedY;
 	}
 	
-	
-	
-	
-	
-	
-	
+	public void draw() {
+		texture.bind();
+
+		int textureWidth = texture.getTextureWidth();
+		int textureHeight = texture.getTextureHeight();
+		GL11.glBegin(GL11.GL_QUADS);
+		{
+			GL11.glTexCoord2f(0, 0);
+			GL11.glVertex2f((float)currentX - textureWidth / 2f, (float)currentY - textureHeight / 2f);
+			GL11.glTexCoord2f(1, 0);
+			GL11.glVertex2f((float)currentX + textureWidth / 2f, (float)currentY - textureHeight / 2f);
+			GL11.glTexCoord2f(1, 1);
+			GL11.glVertex2f((float)currentX + textureWidth / 2f, (float)currentY + textureHeight / 2f);
+			GL11.glTexCoord2f(0, 1);
+			GL11.glVertex2f((float)currentX - textureWidth / 2f, (float)currentY + textureHeight / 2f);
+		}
+		GL11.glEnd();
+	}
 }
