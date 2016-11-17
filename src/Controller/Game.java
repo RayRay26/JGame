@@ -4,6 +4,7 @@ import java.math.*;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ThreadLocalRandom;
 import java.io.Console;
 import java.io.IOException;
 import org.lwjgl.LWJGLException;
@@ -12,16 +13,22 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.openal.AL;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
+import org.newdawn.slick.openal.Audio;
+import org.newdawn.slick.openal.AudioLoader;
+import org.newdawn.slick.openal.SoundStore;
 import org.newdawn.slick.util.ResourceLoader;
 
 import Model.Bullet;
 import Model.Enemy;
 import Model.Player;
+import View.Screen;
+import View.SoundController;
 import View.UI;
 
 public class Game {
@@ -30,7 +37,6 @@ public class Game {
 	public static final int HEIGHT = 300;
 	private Player player;
 	public static AppGameContainer appgc;
-	private Texture background;
 	private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 	private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
 	private int timer = 0;
@@ -42,13 +48,8 @@ public class Game {
 		init();
 
 		while (true) { // Game Loop
-			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
-			// draws background then player on top of background
-			drawBackGround();
-			drawPlayer();
 			// draws health meter
-			UI.drawHealth(player.getHealth());
 			/*******************
 			 * GAME LOOP
 			 **************************************************/
@@ -79,11 +80,17 @@ public class Game {
 					bullets.add(bullet);
 			}
 
-			// refreshing and drawing the enemies/bullets
-			refreshDrawings();
+			for(int repeat = 0; repeat < 2; repeat++) {
+				for (int i = 0; i < bullets.size(); i++) {
+					bullets.get(i).incrementValue();
+				}
+				performBulletCollisions();
+			}
+
 			boolean wasHit = checkPlayerHit();
 			if (wasHit) {
 				player.takeDamage();
+				SoundController.playSoundWithRandomPitch(SoundController.hitPlayer);
 			}
 
 			if (player.getHealth() <= 0) {
@@ -94,11 +101,29 @@ public class Game {
 			/*******************
 			 * END GAME LOOP
 			 **************************************************/
+			/*******************
+			 * DRAW
+			 */
+			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+			Screen.drawBackGround();
+			for (int i = 0; i < bullets.size(); i++) {
+				bullets.get(i).draw();
+			}
+			for (int i = 0; i < enemies.size(); i++) {
+				enemies.get(i).draw();
+			}
+			player.draw();
+			UI.drawHealth(player.getHealth());
+			UI.drawOverheat(player.getOverheat() / player.getMaxOverheat());
+			/*******************
+			 * END DRAW
+			 */
 			Display.update();
 			Display.sync(60);
 
 			if (Display.isCloseRequested()) {
 				Display.destroy();
+				AL.destroy();
 				System.exit(0);
 			}
 		}
@@ -108,17 +133,25 @@ public class Game {
 
 		try {
 			// loading textures to the screen
-			Player.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player.png"));
+			Player.texture0 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player0.png"));
+			Player.texture1 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player1.png"));
+			Player.texture3 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player3.png"));
 			Bullet.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/spr_laser.png"));
 			Enemy.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot.png"));
-			background = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/floor.png"));
+			Screen.background = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/floor.png"));
 			UI.health5 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar5.png"));
 			UI.health4 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar4.png"));
 			UI.health3 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar3.png"));
 			UI.health2 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar2.png"));
 			UI.health1 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar1.png"));
 			UI.health0 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar0.png"));
-
+			UI.overheatFill = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/overheatFill.png"));
+			UI.overheatBack = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/overheatBack.png"));
+			SoundController.shoot = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/shootGun.wav"));
+			SoundController.step0 = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/step0.wav"));
+			SoundController.step1 = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/step1.wav"));
+			SoundController.hitEnemy = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/hitEnemy.wav"));
+			SoundController.hitPlayer = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/hitPlayer.wav"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -154,30 +187,28 @@ public class Game {
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 	}
 
-	// this is drawing the player onto the screen
-	public void drawPlayer() {
-		player.draw();
-	}
-
 	// the nested if statements account for the player gonig off screen
 	// the weird numbers for the if statements account for character padding
 	public void playerMovement() {
+		int dx = 0;
+		int dy = 0;
 		if (Keyboard.isKeyDown(Keyboard.KEY_W) || Keyboard.isKeyDown(Keyboard.KEY_UP)) {
 			if (player.getY() > 20)
-				player.setY(player.getY() - 2);
+				dy -= 2;
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_A) || Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
 			if (player.getX() > 20)
-				player.setX(player.getX() - 2);
+				dx -= 2;
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_S) || Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
 			if (player.getY() < HEIGHT - 20)
-				player.setY(player.getY() + 2);
+				dy += 2;
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_D) || Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
 			if (player.getX() < WIDTH - 20)
-				player.setX(player.getX() + 2);
+				dx += 2;
 		}
+		player.move(dx, dy);
 	}
 
 	public void enemySpawn() {
@@ -190,45 +221,31 @@ public class Game {
 		enemies.add(robot);
 		robot.draw();
 	}
-
-	public void playerShoot() {
-
-		
-	}
-
-	public void refreshDrawings() {
-
-		// spawning bullets
-		for (int i = 0; i < bullets.size(); i++) {
-			bullets.get(i).incrementValue();
-			bullets.get(i).draw();
-		}
-
+	
+	public void performBulletCollisions() {
 		// despawning hit enemies
-		int bulletWidth = Bullet.texture.getTextureWidth();
-		int bulletHeight = Bullet.texture.getTextureHeight();
+		int bulletSize = Bullet.texture.getTextureHeight();
 		int robotWidth = Enemy.texture.getTextureWidth();
 		int robotHeight = Enemy.texture.getTextureHeight();
 		for (int i = 0; i < bullets.size(); i++) {
 			for (int j = 0; j < enemies.size(); j++) {
 				// if bullet is greater than enemyX but less than enemyX +
 				// texture width despawn
-				if (bullets.get(i).getCurrentX() - (int) (bulletWidth / 2f) >= enemies.get(j).getX()
+				if (bullets.get(i).getCurrentX() - (int) (bulletSize / 2f) >= enemies.get(j).getX()
 						- (int) (robotWidth / 2f)
-						&& bullets.get(i).getCurrentX() + (int) (bulletWidth / 2f) <= enemies.get(j).getX()
+						&& bullets.get(i).getCurrentX() + (int) (bulletSize / 2f) <= enemies.get(j).getX()
 								+ (int) (robotWidth / 2f)
-						&& bullets.get(i).getCurrentY() - (int) (bulletHeight / 2f) >= enemies.get(j).getY()
+						&& bullets.get(i).getCurrentY() - (int) (bulletSize / 2f) >= enemies.get(j).getY()
 								- (int) (robotHeight / 2f)
-						&& bullets.get(i).getCurrentY() + (int) (bulletHeight / 2f) <= enemies.get(j).getY()
+						&& bullets.get(i).getCurrentY() + (int) (bulletSize / 2f) <= enemies.get(j).getY()
 								+ (int) (robotHeight / 2f)) {
+					SoundController.playSoundWithRandomPitch(SoundController.hitEnemy);
 					enemies.remove(j);// remove enemy if hit
+					bullets.remove(i);// destroy bullet
+					i--;// don't skip the next bullet
+					break;// move on to the next bullet
 				}
 			}
-		}
-
-		// drawing enemies
-		for (int i = 0; i < enemies.size(); i++) {
-			enemies.get(i).draw();
 		}
 
 		// remove bullets from array once they are out of bounds/memory
@@ -239,7 +256,6 @@ public class Game {
 				bullets.remove(i);
 			}
 		}
-
 	}
 
 	public void enemyMovement() {
@@ -248,44 +264,31 @@ public class Game {
 			if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() < player.getY()) {
 				enemies.get(i).incrementX();
 				enemies.get(i).incrementY();
+				enemies.get(i).setRotation(315);
 			} else if (enemies.get(i).getX() > player.getX() && enemies.get(i).getY() < player.getY()) {
 				enemies.get(i).decrementX();
 				enemies.get(i).incrementY();
+				enemies.get(i).setRotation(225);
 			} else if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() > player.getY()) {
 				enemies.get(i).incrementX();
 				enemies.get(i).decrementY();
+				enemies.get(i).setRotation(45);
 			} else if (enemies.get(i).getX() > player.getX() && enemies.get(i).getY() == player.getY()) {
 				enemies.get(i).decrementX();
+				enemies.get(i).setRotation(180);
 			} else if (enemies.get(i).getX() == player.getX() && enemies.get(i).getY() > player.getY()) {
 				enemies.get(i).decrementY();
+				enemies.get(i).setRotation(90);
 			} else if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() == player.getY()) {
 				enemies.get(i).incrementX();
+				enemies.get(i).setRotation(0);
 			} else if (enemies.get(i).getX() == player.getX() && enemies.get(i).getY() < player.getY()) {
 				enemies.get(i).incrementY();
+				enemies.get(i).setRotation(270);
 			} else {
 				enemies.get(i).decrementX();
 				enemies.get(i).decrementY();
-			}
-		}
-	}
-
-	public void drawBackGround() {
-		for (int x = 0; x < 800; x += background.getTextureWidth()) {
-			for (int y = 0; y < 600; y += background.getTextureHeight()) {
-				background.bind();
-
-				GL11.glBegin(GL11.GL_QUADS);
-				{
-					GL11.glTexCoord2f(0, 0);
-					GL11.glVertex2f(x, y);
-					GL11.glTexCoord2f(1, 0);
-					GL11.glVertex2f(x + background.getTextureWidth(), y);
-					GL11.glTexCoord2f(1, 1);
-					GL11.glVertex2f(x + background.getTextureWidth(), y + background.getTextureHeight());
-					GL11.glTexCoord2f(0, 1);
-					GL11.glVertex2f(x, y + background.getTextureHeight());
-				}
-				GL11.glEnd();
+				enemies.get(i).setRotation(135);
 			}
 		}
 	}
@@ -299,7 +302,10 @@ public class Game {
 		boolean isHit = false;
 
 		for (int i = 0; i < enemies.size(); i++) {
-			if (enemies.get(i).getX() == player.getX() && enemies.get(i).getY() == player.getY()) {
+			if (enemies.get(i).getX() >= player.getX() - 4
+					&& enemies.get(i).getX() < player.getX() + 4
+					&& enemies.get(i).getY() >= player.getY() - 4
+					&& enemies.get(i).getY() < player.getY() + 4) {
 				enemies.remove(i);
 				isHit = true;
 			}

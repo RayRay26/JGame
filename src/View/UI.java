@@ -10,39 +10,36 @@ public class UI {
 	public static Texture health2;
 	public static Texture health1;
 	public static Texture health0;
+	public static Texture overheatFill;
+	public static Texture overheatBack;
 	
 	public static void drawHealth(int health) {
+		Texture texture;
 		switch (health) {
 		case 5:
-			health5.bind();
+			texture = health5;
 			break;
 		case 4:
-			health4.bind();
+			texture = health4;
 			break;
 		case 3:
-			health3.bind();
+			texture = health3;
 			break;
 		case 2:
-			health2.bind();
+			texture = health2;
 			break;
 		case 1:
-			health1.bind();
+			texture = health1;
 			break;
 		default:
-			health0.bind();
+			texture = health0;
 		}
 
-		GL11.glBegin(GL11.GL_QUADS);
-		{
-			GL11.glTexCoord2f(0, 0);
-			GL11.glVertex2f(0, 0);
-			GL11.glTexCoord2f(1, 0);
-			GL11.glVertex2f(80, 0);
-			GL11.glTexCoord2f(1, 1);
-			GL11.glVertex2f(80, 16);
-			GL11.glTexCoord2f(0, 1);
-			GL11.glVertex2f(0, 16);
-		}
-		GL11.glEnd();
+		Screen.drawSprite(texture, 0, 0, 80, 16, 0.625f, 1f);
+	}
+	
+	public static void drawOverheat(float overheatRatio) {
+		Screen.drawSprite(overheatBack, 0, 16, 80, 16, 0.625f, 1f);
+		Screen.drawSprite(overheatFill, 0, 16, overheatRatio * 80f, 16, overheatRatio * 0.625f, 1f);
 	}
 }

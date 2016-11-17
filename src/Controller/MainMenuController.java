@@ -102,12 +102,14 @@ public class MainMenuController {
 		}*/
 	}
 	
-	private boolean isSFXOn = true;
+	public static boolean isSFXOn = true;
 
 	public void handleSFXToggle() {
 		if (sfxToggle.isDisabled()) {
 			isSFXOn = false;
 		}
+		else
+			isSFXOn = true;
 	}
 	
 	public boolean getisSFXOn(){

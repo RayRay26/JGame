@@ -12,6 +12,9 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.opengl.Texture;
+
+import View.Screen;
+
 import org.newdawn.slick.Input;
 import org.newdawn.slick.Image;
 
@@ -20,6 +23,7 @@ public class Enemy {
 	
 	private int x;
 	private int y;
+	private double rotation;
 	
 	
 	public Enemy(int x, int y){
@@ -59,23 +63,23 @@ public class Enemy {
 		return this.y;
 	}
 	
+	public double getRotation() {
+		return rotation;
+	}
+	
+	public void setRotation(double rotation) {
+		this.rotation = rotation;
+	}
+	
 	public void draw() {
 		texture.bind();
 
 		int textureWidth = texture.getTextureWidth();
 		int textureHeight = texture.getTextureHeight();
-		GL11.glBegin(GL11.GL_QUADS);
-		{
-			GL11.glTexCoord2f(0, 0);
-			GL11.glVertex2f(x - textureWidth / 2f, y - textureHeight / 2f);
-			GL11.glTexCoord2f(1, 0);
-			GL11.glVertex2f(x + textureWidth / 2f, y - textureHeight / 2f);
-			GL11.glTexCoord2f(1, 1);
-			GL11.glVertex2f(x + textureWidth / 2f, y + textureHeight / 2f);
-			GL11.glTexCoord2f(0, 1);
-			GL11.glVertex2f(x - textureWidth / 2f, y + textureHeight / 2f);
-		}
-		GL11.glEnd();
+		GL11.glTranslatef(x, y, 0);
+		GL11.glRotated(rotation, 0, 0, -1);
+		Screen.drawSprite(texture, -textureWidth / 2f, -textureHeight / 2f, textureWidth, textureHeight);
+		Screen.resetToIdentity();
 	}
 	
 	
