@@ -1,7 +1,5 @@
 package Controller;
 
-import Model.GameObject;
-
 import java.io.File;
 import java.io.IOException;
 

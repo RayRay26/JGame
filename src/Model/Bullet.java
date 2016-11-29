@@ -1,5 +1,6 @@
 package Model;
 
+import java.awt.Rectangle;
 import java.util.concurrent.ThreadLocalRandom;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -12,6 +13,8 @@ import application.ExtraMath;
 
 public class Bullet {
 	public static Texture texture;
+	public static int textureWidth;
+	public static int textureHeight;
 	
 	private double bulletSpeed = 6.0;
 	private double currentX, currentY, speedX, speedY;
@@ -33,6 +36,10 @@ public class Bullet {
 	public int getCurrentY() {
 		return (int)currentY;
 	}
+
+	public Rectangle getRectangle() {
+		return new Rectangle((int)(currentX - textureHeight / 2f), (int)(currentY - textureHeight / 2f), textureHeight, textureHeight);
+	}
 	
 	public void incrementValue(){
 		currentX += speedX / 2f;
@@ -41,9 +48,7 @@ public class Bullet {
 	
 	public void draw() {
 		texture.bind();
-
-		int textureWidth = texture.getTextureWidth();
-		int textureHeight = texture.getTextureHeight();
+		
 		double angle = ExtraMath.PointDirection(0, 0, speedX, speedY);
 		GL11.glTranslated(currentX, currentY, 0);
 		GL11.glRotated(angle, 0, 0, -1);

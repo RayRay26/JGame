@@ -1,5 +1,6 @@
 package Model;
 
+import java.awt.Rectangle;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -16,6 +17,7 @@ public class Player {
 	public static Texture texture1;
 	public static Texture texture2;
 	public static Texture texture3;
+	public static int textureWidth;
 	
 	private int x;
 	private int y;
@@ -54,6 +56,10 @@ public class Player {
 	
 	public void setY(int y) {
 		this.y = y;
+	}
+
+	public Rectangle getRectangle() {
+		return new Rectangle(x - 4, y - 4, 8, 8);
 	}
 	
 	public void move(int dx, int dy) {
@@ -122,14 +128,12 @@ public class Player {
 			break;
 		}
 
-		int textureWidth = texture.getTextureWidth();
-		int textureHeight = texture.getTextureHeight();
 		double angle = ExtraMath.PointDirection(x, y, Mouse.getX() / 2f, Game.HEIGHT - Mouse.getY() / 2f);
 		if(invincibility > 0)
 		GL11.glColor4f(1f, 1f, 1f, 0.5f);
 		GL11.glTranslatef(x, y, 0);
 		GL11.glRotated(angle, 0, 0, -1);
-		Screen.drawSprite(texture, -textureWidth / 2f, -textureHeight / 2f, textureWidth, textureHeight);
+		Screen.drawSprite(texture, -textureWidth / 2f, -textureWidth / 2f, textureWidth, textureWidth);
 		Screen.resetToIdentity();
 	}
 }

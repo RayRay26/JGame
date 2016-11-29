@@ -1,6 +1,7 @@
 package Controller;
 
 import java.math.*;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -27,6 +28,7 @@ import org.newdawn.slick.util.ResourceLoader;
 import Model.Bullet;
 import Model.Enemy;
 import Model.Player;
+import Model.Wall;
 import View.Screen;
 import View.SoundController;
 import View.UI;
@@ -36,98 +38,13 @@ public class Game {
 	public static final int WIDTH = 400;
 	public static final int HEIGHT = 300;
 	private Player player;
+	private int level;
+	private int enemiesKilled;
 	public static AppGameContainer appgc;
 	private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 	private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
+	private ArrayList<Wall> walls = new ArrayList<Wall>();
 	private int timer = 0;
-
-	public void run() {
-
-		initGL(WIDTH * 2, HEIGHT * 2);
-		GL11.glScaled(2, 2, 1);
-		init();
-
-		while (true) { // Game Loop
-
-			// draws health meter
-			/*******************
-			 * GAME LOOP
-			 **************************************************/
-
-			// moves player then checks relative position of player then moves
-			// enemy
-			playerMovement();
-			enemyMovement();
-
-			// timer increases every frame aka 60/sec
-			if (timer < 6000) {
-				if (timer % 100 == 0)
-					enemySpawn();
-			} else if (timer < 8000) {
-				if (timer % 50 == 0)
-					enemySpawn();
-			} else {
-				if (timer % 25 == 0)
-					enemySpawn();
-			}
-
-			player.update();
-			
-			// if left click is down shoot
-			if (Mouse.isButtonDown(0)) {
-				Bullet bullet = player.shoot();
-				if(bullet != null)
-					bullets.add(bullet);
-			}
-
-			for(int repeat = 0; repeat < 2; repeat++) {
-				for (int i = 0; i < bullets.size(); i++) {
-					bullets.get(i).incrementValue();
-				}
-				performBulletCollisions();
-			}
-
-			boolean wasHit = checkPlayerHit();
-			if (wasHit) {
-				player.takeDamage();
-				SoundController.playSoundWithRandomPitch(SoundController.hitPlayer);
-			}
-
-			if (player.getHealth() <= 0) {
-				gameOver();
-			}
-
-			timer++;
-			/*******************
-			 * END GAME LOOP
-			 **************************************************/
-			/*******************
-			 * DRAW
-			 */
-			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-			Screen.drawBackGround();
-			for (int i = 0; i < bullets.size(); i++) {
-				bullets.get(i).draw();
-			}
-			for (int i = 0; i < enemies.size(); i++) {
-				enemies.get(i).draw();
-			}
-			player.draw();
-			UI.drawHealth(player.getHealth());
-			UI.drawOverheat(player.getOverheat() / player.getMaxOverheat());
-			/*******************
-			 * END DRAW
-			 */
-			Display.update();
-			Display.sync(60);
-
-			if (Display.isCloseRequested()) {
-				Display.destroy();
-				AL.destroy();
-				System.exit(0);
-			}
-		}
-	}
 
 	public void init() {
 
@@ -136,9 +53,17 @@ public class Game {
 			Player.texture0 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player0.png"));
 			Player.texture1 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player1.png"));
 			Player.texture3 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player3.png"));
+			Player.textureWidth = Player.texture0.getTextureWidth();
 			Bullet.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/spr_laser.png"));
-			Enemy.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot.png"));
+			Bullet.textureWidth = Bullet.texture.getTextureWidth();
+			Bullet.textureHeight = Bullet.texture.getTextureHeight();
+			Enemy.texture0 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot0.png"));
+			Enemy.texture1 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot1.png"));
+			Enemy.texture3 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot3.png"));
+			Enemy.textureWidth = Enemy.texture0.getTextureWidth();
 			Screen.background = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/floor.png"));
+			Wall.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/wall.png"));
+			Wall.textureWidth = Wall.texture.getTextureWidth();
 			UI.health5 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar5.png"));
 			UI.health4 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar4.png"));
 			UI.health3 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar3.png"));
@@ -156,7 +81,8 @@ public class Game {
 			e.printStackTrace();
 		}
 		
-		player = new Player(300, 200);
+		level = 1;
+		enemiesKilled = 0;
 	}
 
 	// creating the openGL window
@@ -186,6 +112,283 @@ public class Game {
 		GL11.glOrtho(0, width, height, 0, 1, -1);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 	}
+	
+	private void loadLevel(int level) {
+		walls.clear();
+		enemies.clear();
+		bullets.clear();
+		enemiesKilled = 0;
+		
+		switch(level) {
+		case 1:
+			player = new Player(200, 150);
+			walls.add(new Wall(0, 80));
+			walls.add(new Wall(16, 80));
+			walls.add(new Wall(32, 80));
+			walls.add(new Wall(48, 80));
+			walls.add(new Wall(0, 96));
+			walls.add(new Wall(16, 96));
+			walls.add(new Wall(32, 96));
+			walls.add(new Wall(48, 96));
+			
+			walls.add(new Wall(336, 80));
+			walls.add(new Wall(352, 80));
+			walls.add(new Wall(368, 80));
+			walls.add(new Wall(384, 80));
+			walls.add(new Wall(336, 96));
+			walls.add(new Wall(352, 96));
+			walls.add(new Wall(368, 96));
+			walls.add(new Wall(384, 96));
+			
+			walls.add(new Wall(0, 192));
+			walls.add(new Wall(16, 192));
+			walls.add(new Wall(32, 192));
+			walls.add(new Wall(48, 192));
+			walls.add(new Wall(0, 208));
+			walls.add(new Wall(16, 208));
+			walls.add(new Wall(32, 208));
+			walls.add(new Wall(48, 208));
+			
+			walls.add(new Wall(336, 192));
+			walls.add(new Wall(352, 192));
+			walls.add(new Wall(368, 192));
+			walls.add(new Wall(384, 192));
+			walls.add(new Wall(336, 208));
+			walls.add(new Wall(352, 208));
+			walls.add(new Wall(368, 208));
+			walls.add(new Wall(384, 208));
+
+			walls.add(new Wall(128, 128));
+			walls.add(new Wall(144, 128));
+			walls.add(new Wall(128, 144));
+			walls.add(new Wall(144, 144));
+			walls.add(new Wall(128, 160));
+			walls.add(new Wall(144, 160));
+
+			walls.add(new Wall(240, 128));
+			walls.add(new Wall(256, 128));
+			walls.add(new Wall(240, 144));
+			walls.add(new Wall(256, 144));
+			walls.add(new Wall(240, 160));
+			walls.add(new Wall(256, 160));
+		break;
+		case 2:
+			player = new Player(200, 150);
+			walls.add(new Wall(144, 96));
+			walls.add(new Wall(160, 96));
+			walls.add(new Wall(176, 96));
+			walls.add(new Wall(192, 96));
+			walls.add(new Wall(208, 96));
+			walls.add(new Wall(224, 96));
+			walls.add(new Wall(240, 96));
+			walls.add(new Wall(144, 192));
+			walls.add(new Wall(160, 192));
+			walls.add(new Wall(176, 192));
+			walls.add(new Wall(192, 192));
+			walls.add(new Wall(208, 192));
+			walls.add(new Wall(224, 192));
+			walls.add(new Wall(240, 192));
+
+			walls.add(new Wall(96, 96));
+			walls.add(new Wall(96, 112));
+			walls.add(new Wall(96, 128));
+			walls.add(new Wall(96, 144));
+			walls.add(new Wall(96, 160));
+			walls.add(new Wall(96, 176));
+			walls.add(new Wall(96, 192));
+			walls.add(new Wall(288, 96));
+			walls.add(new Wall(288, 112));
+			walls.add(new Wall(288, 128));
+			walls.add(new Wall(288, 144));
+			walls.add(new Wall(288, 160));
+			walls.add(new Wall(288, 176));
+			walls.add(new Wall(288, 192));
+
+			walls.add(new Wall(96, 48));
+			walls.add(new Wall(112, 48));
+			walls.add(new Wall(128, 48));
+			walls.add(new Wall(144, 48));
+			walls.add(new Wall(160, 48));
+			walls.add(new Wall(176, 48));
+			walls.add(new Wall(192, 48));
+			walls.add(new Wall(208, 48));
+			walls.add(new Wall(224, 48));
+			walls.add(new Wall(240, 48));
+			walls.add(new Wall(256, 48));
+			walls.add(new Wall(272, 48));
+			walls.add(new Wall(288, 48));
+			walls.add(new Wall(96, 240));
+			walls.add(new Wall(112, 240));
+			walls.add(new Wall(128, 240));
+			walls.add(new Wall(144, 240));
+			walls.add(new Wall(160, 240));
+			walls.add(new Wall(176, 240));
+			walls.add(new Wall(192, 240));
+			walls.add(new Wall(208, 240));
+			walls.add(new Wall(224, 240));
+			walls.add(new Wall(240, 240));
+			walls.add(new Wall(256, 240));
+			walls.add(new Wall(272, 240));
+			walls.add(new Wall(288, 240));
+
+			walls.add(new Wall(48, 48));
+			walls.add(new Wall(48, 64));
+			walls.add(new Wall(48, 80));
+			walls.add(new Wall(48, 96));
+			walls.add(new Wall(48, 112));
+			walls.add(new Wall(48, 128));
+			walls.add(new Wall(48, 144));
+			walls.add(new Wall(48, 160));
+			walls.add(new Wall(48, 176));
+			walls.add(new Wall(48, 192));
+			walls.add(new Wall(48, 208));
+			walls.add(new Wall(48, 224));
+			walls.add(new Wall(48, 240));
+			walls.add(new Wall(336, 48));
+			walls.add(new Wall(336, 64));
+			walls.add(new Wall(336, 80));
+			walls.add(new Wall(336, 96));
+			walls.add(new Wall(336, 112));
+			walls.add(new Wall(336, 128));
+			walls.add(new Wall(336, 144));
+			walls.add(new Wall(336, 160));
+			walls.add(new Wall(336, 176));
+			walls.add(new Wall(336, 192));
+			walls.add(new Wall(336, 208));
+			walls.add(new Wall(336, 224));
+			walls.add(new Wall(336, 240));
+		break;
+		case 3:
+			player = new Player(300, 200);
+			for(int i = 0; i < 50; i++) {
+				int newX = 0;
+				int newY = 0;
+				while(true) {
+					newX = (int)Math.floor(Math.random() * WIDTH / 16.0) * 16;
+					newY = (int)Math.floor(Math.random() * HEIGHT / 16.0) * 16;
+					Rectangle rect = new Rectangle(newX, newY, 16, 16);
+					if(rect.contains(player.getRectangle()))
+						continue;
+					boolean matchesAnother = false;
+					for(int j = 0; j < i; j++) {
+						if(newX == walls.get(j).getX() && newY == walls.get(j).getY()) {
+							matchesAnother = true;
+							break;
+						}
+					}
+					if(!matchesAnother)
+						break;
+				}
+				walls.add(new Wall(newX, newY));
+			}
+				
+			break;
+		default:
+			player = new Player(300, 200);
+		}
+	}
+
+	public void run() {
+
+		initGL(WIDTH * 2, HEIGHT * 2);
+		GL11.glScaled(2, 2, 1);
+		init();
+		loadLevel(level);
+
+		while (true) { // Game Loop
+
+			/*******************
+			 * GAME LOOP
+			 **************************************************/
+
+			// moves player then checks relative position of player then moves
+			// enemy
+			playerMovement();
+			enemyMovement();
+
+			// timer increases every frame aka 60/sec
+			if(enemiesKilled + enemies.size() < 20) {
+				if (timer < 6000) {
+					if (timer % 100 == 0)
+						enemySpawn();
+				} else if (timer < 8000) {
+					if (timer % 50 == 0)
+						enemySpawn();
+				} else {
+					if (timer % 25 == 0)
+						enemySpawn();
+				}
+			}
+
+			player.update();
+			
+			// if left click is down shoot
+			if (Mouse.isButtonDown(0)) {
+				Bullet bullet = player.shoot();
+				if(bullet != null)
+					bullets.add(bullet);
+			}
+
+			for(int repeat = 0; repeat < 2; repeat++) {
+				for (int i = 0; i < bullets.size(); i++) {
+					bullets.get(i).incrementValue();
+				}
+				performBulletCollisions();
+			}
+
+			boolean wasHit = checkPlayerHit();
+			if (wasHit) {
+				boolean damageAccepted = player.takeDamage();
+				if(damageAccepted)
+					SoundController.playSoundWithRandomPitch(SoundController.hitPlayer);
+				else
+					SoundController.playSoundWithRandomPitch(SoundController.hitEnemy);
+			}
+
+			if (player.getHealth() <= 0) {
+				gameOver();
+			}
+			if(enemiesKilled >= 20) {
+				if(level < 4) {
+					level++;
+					loadLevel(level);
+				}
+			}
+
+			timer++;
+			/*******************
+			 * END GAME LOOP
+			 **************************************************/
+			/*******************
+			 * DRAW
+			 */
+			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+			Screen.drawBackGround();
+			for (int i = 0; i < walls.size(); i++) {
+				walls.get(i).draw();
+			}
+			for (int i = 0; i < bullets.size(); i++) {
+				bullets.get(i).draw();
+			}
+			for (int i = 0; i < enemies.size(); i++) {
+				enemies.get(i).draw();
+			}
+			player.draw();
+			UI.drawHealth(player.getHealth());
+			UI.drawOverheat(player.getOverheat() / player.getMaxOverheat());
+			/*******************
+			 * END DRAW
+			 */
+			Display.update();
+			Display.sync(60);
+
+			if (Display.isCloseRequested()) {
+				Display.destroy();
+				AL.destroy();
+				System.exit(0);
+			}
+		}
+	}
 
 	// the nested if statements account for the player gonig off screen
 	// the weird numbers for the if statements account for character padding
@@ -208,6 +411,14 @@ public class Game {
 			if (player.getX() < WIDTH - 20)
 				dx += 2;
 		}
+		Rectangle playerRectangle = player.getRectangle();
+		playerRectangle.x += dx;
+		if(collisionWithWall(playerRectangle))
+			dx = 0;
+		playerRectangle = player.getRectangle();
+		playerRectangle.y += dy;
+		if(collisionWithWall(playerRectangle))
+			dy = 0;
 		player.move(dx, dy);
 	}
 
@@ -224,93 +435,106 @@ public class Game {
 	
 	public void performBulletCollisions() {
 		// despawning hit enemies
-		int bulletSize = Bullet.texture.getTextureHeight();
-		int robotWidth = Enemy.texture.getTextureWidth();
-		int robotHeight = Enemy.texture.getTextureHeight();
 		for (int i = 0; i < bullets.size(); i++) {
+			boolean removeBullet = false;
+			Rectangle bulletRectangle = bullets.get(i).getRectangle(); 
 			for (int j = 0; j < enemies.size(); j++) {
-				// if bullet is greater than enemyX but less than enemyX +
-				// texture width despawn
-				if (bullets.get(i).getCurrentX() - (int) (bulletSize / 2f) >= enemies.get(j).getX()
-						- (int) (robotWidth / 2f)
-						&& bullets.get(i).getCurrentX() + (int) (bulletSize / 2f) <= enemies.get(j).getX()
-								+ (int) (robotWidth / 2f)
-						&& bullets.get(i).getCurrentY() - (int) (bulletSize / 2f) >= enemies.get(j).getY()
-								- (int) (robotHeight / 2f)
-						&& bullets.get(i).getCurrentY() + (int) (bulletSize / 2f) <= enemies.get(j).getY()
-								+ (int) (robotHeight / 2f)) {
+				if(bulletRectangle.intersects(enemies.get(j).getRectangle())) {
 					SoundController.playSoundWithRandomPitch(SoundController.hitEnemy);
 					enemies.remove(j);// remove enemy if hit
-					bullets.remove(i);// destroy bullet
-					i--;// don't skip the next bullet
+					enemiesKilled++;
+					removeBullet = true;
 					break;// move on to the next bullet
 				}
+			}
+			if(!removeBullet) {
+				for(int j = 0; j < walls.size(); j++) {
+					if(bulletRectangle.intersects(walls.get(j).getRectangle())) {
+						removeBullet = true;
+						break;// move on to the next bullet
+					}
+				}
+			}
+			if(removeBullet) {
+				bullets.remove(i);// destroy bullet
+				i--;// don't skip the next bullet
 			}
 		}
 
 		// remove bullets from array once they are out of bounds/memory
 		// conservation
+		Rectangle gameArea = new Rectangle(-100, -100, WIDTH + 200, HEIGHT + 200);
 		for (int i = 0; i < bullets.size(); i++) {
-			if (bullets.get(i).getCurrentX() > WIDTH + 100 || bullets.get(i).getCurrentX() < -100
-					|| bullets.get(i).getCurrentY() < -100 || bullets.get(i).getCurrentY() > HEIGHT + 100) {
+			if(!gameArea.contains(bullets.get(i).getCurrentX(), bullets.get(i).getCurrentY()))
 				bullets.remove(i);
-			}
 		}
 	}
 
 	public void enemyMovement() {
 		for (int i = 0; i < enemies.size(); i++) {
-			// checks position reletive to player then moves enemy
-			if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() < player.getY()) {
-				enemies.get(i).incrementX();
-				enemies.get(i).incrementY();
-				enemies.get(i).setRotation(315);
-			} else if (enemies.get(i).getX() > player.getX() && enemies.get(i).getY() < player.getY()) {
-				enemies.get(i).decrementX();
-				enemies.get(i).incrementY();
-				enemies.get(i).setRotation(225);
-			} else if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() > player.getY()) {
-				enemies.get(i).incrementX();
-				enemies.get(i).decrementY();
-				enemies.get(i).setRotation(45);
-			} else if (enemies.get(i).getX() > player.getX() && enemies.get(i).getY() == player.getY()) {
-				enemies.get(i).decrementX();
-				enemies.get(i).setRotation(180);
-			} else if (enemies.get(i).getX() == player.getX() && enemies.get(i).getY() > player.getY()) {
-				enemies.get(i).decrementY();
-				enemies.get(i).setRotation(90);
-			} else if (enemies.get(i).getX() < player.getX() && enemies.get(i).getY() == player.getY()) {
-				enemies.get(i).incrementX();
-				enemies.get(i).setRotation(0);
-			} else if (enemies.get(i).getX() == player.getX() && enemies.get(i).getY() < player.getY()) {
-				enemies.get(i).incrementY();
-				enemies.get(i).setRotation(270);
+			Enemy enemy = enemies.get(i);
+			// checks position relative to player then moves enemy
+			if (enemy.getX() < player.getX() && enemy.getY() < player.getY()) {
+				enemy.incrementX();
+				enemy.incrementY();
+				enemy.setRotation(315);
+			} else if (enemy.getX() > player.getX() && enemy.getY() < player.getY()) {
+				enemy.decrementX();
+				enemy.incrementY();
+				enemy.setRotation(225);
+			} else if (enemy.getX() < player.getX() && enemy.getY() > player.getY()) {
+				enemy.incrementX();
+				enemy.decrementY();
+				enemy.setRotation(45);
+			} else if (enemy.getX() > player.getX() && enemy.getY() == player.getY()) {
+				enemy.decrementX();
+				enemy.setRotation(180);
+			} else if (enemy.getX() == player.getX() && enemy.getY() > player.getY()) {
+				enemy.decrementY();
+				enemy.setRotation(90);
+			} else if (enemy.getX() < player.getX() && enemy.getY() == player.getY()) {
+				enemy.incrementX();
+				enemy.setRotation(0);
+			} else if (enemy.getX() == player.getX() && enemy.getY() < player.getY()) {
+				enemy.incrementY();
+				enemy.setRotation(270);
 			} else {
-				enemies.get(i).decrementX();
-				enemies.get(i).decrementY();
-				enemies.get(i).setRotation(135);
+				enemy.decrementX();
+				enemy.decrementY();
+				enemy.setRotation(135);
 			}
+			enemy.update();
 		}
 	}
 
 	public void gameOver() {
-		// TODO GAMEOVER STUFF
-		System.exit(0);
+		loadLevel(level);
 	}
 
 	public boolean checkPlayerHit() {
 		boolean isHit = false;
 
+		Rectangle playerRectangle = player.getRectangle();
 		for (int i = 0; i < enemies.size(); i++) {
-			if (enemies.get(i).getX() >= player.getX() - 4
-					&& enemies.get(i).getX() < player.getX() + 4
-					&& enemies.get(i).getY() >= player.getY() - 4
-					&& enemies.get(i).getY() < player.getY() + 4) {
+			if(playerRectangle.contains(enemies.get(i).getX(), enemies.get(i).getY())) {
 				enemies.remove(i);
 				isHit = true;
 			}
 		}
 
 		return isHit;
+	}
+
+	/**
+	 * Check if the rectangle overlaps any wall
+	 * @param      rectangle  The rectangle
+	 * @return     True if overlapping any wall
+	 */
+	public boolean collisionWithWall(Rectangle rectangle) {
+		for(int i = 0; i < walls.size(); i++) {
+			if(walls.get(i).getRectangle().intersects(rectangle))
+				return true;
+		}
+		return false;
 	}
 }
