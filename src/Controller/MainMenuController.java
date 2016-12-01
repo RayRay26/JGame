@@ -10,6 +10,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import Model.Enemy;
+import View.SoundController;
 import application.MainMenu;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -55,6 +56,7 @@ public class MainMenuController {
 
 	public void handleEndlessButton() {
 		Game game = new Game();
+		Game.level = 4;
 		game.run();
 	}
 
@@ -82,38 +84,24 @@ public class MainMenuController {
 		stage.setScene(scene);
 	}
 
-	
-	public void handleMusicToggle() {
-		
-/*		try{																//this isnt working unless i put the complete path to the audio file?
-			AudioInputStream ais = AudioSystem.getAudioInputStream(new File("C:/Users/grabt/Documents/CSCI3300/CSCI3300_Project/src/art/test.wav"));
-			Clip audio = AudioSystem.getClip();
-			if(musicToggle.isSelected()){
-				audio.start();;
-			}
-			else{
-				audio.stop();
-			}
-		}catch(Exception e){
-			System.out.println("Error with audio");
-			e.printStackTrace();
-		}*/
-	}
-	
 	public static boolean isSFXOn = true;
+	public static boolean isMusicOn = true;
 
 	public void handleSFXToggle() {
-		if (sfxToggle.isDisabled()) {
-			isSFXOn = false;
+		isSFXOn = !isSFXOn;
+		sfxToggle.setText("Sound OFF");
+		if (isSFXOn)
+			sfxToggle.setText("Sound ON");
+	}
+
+	public void handleMusicToggle() {
+		isMusicOn = !isMusicOn;
+		musicToggle.setText("Music OFF");
+		SoundController.musicVolume = 0f;
+		if (isMusicOn) {
+			musicToggle.setText("Music ON");
+			SoundController.musicVolume = 1f;
 		}
-		else
-			isSFXOn = true;
 	}
-	
-	public boolean getisSFXOn(){
-		return isSFXOn;
-	}
-
-
 
 }

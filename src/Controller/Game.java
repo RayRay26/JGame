@@ -38,8 +38,8 @@ public class Game {
 
 	public static final int WIDTH = 400;
 	public static final int HEIGHT = 300;
+	public static int level = 1;
 	private Player player;
-	private int level;
 	private int enemiesKilled;
 	public static AppGameContainer appgc;
 	private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
@@ -78,11 +78,11 @@ public class Game {
 			SoundController.step1 = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/step1.wav"));
 			SoundController.hitEnemy = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/hitEnemy.wav"));
 			SoundController.hitPlayer = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/hitPlayer.wav"));
+			SoundController.music = AudioLoader.getStreamingAudio("OGG", ResourceLoader.getResource("sound/music.ogg"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		level = 1;
 		enemiesKilled = 0;
 	}
 
@@ -296,6 +296,7 @@ public class Game {
 		GL11.glScaled(2, 2, 1);
 		init();
 		loadLevel(level);
+		SoundController.playMusic();
 
 		while (true) { // Game Loop
 
@@ -389,6 +390,8 @@ public class Game {
 				AL.destroy();
 				System.exit(0);
 			}
+			
+			SoundController.continueMusic();
 		}
 	}
 
