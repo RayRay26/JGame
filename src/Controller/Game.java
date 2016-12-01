@@ -32,6 +32,7 @@ import Model.Wall;
 import View.Screen;
 import View.SoundController;
 import View.UI;
+import application.ExtraMath;
 
 public class Game {
 
@@ -118,6 +119,7 @@ public class Game {
 		enemies.clear();
 		bullets.clear();
 		enemiesKilled = 0;
+		timer = 0;
 		
 		switch(level) {
 		case 1:
@@ -424,10 +426,15 @@ public class Game {
 
 	public void enemySpawn() {
 		int x, y;
-		do {// an attempt to not spawn the robot on the enemy
+		while(true) {// an attempt to not spawn the robot on the enemy
 			x = (int) Math.floor(Math.random() * WIDTH);
 			y = (int) Math.floor(Math.random() * HEIGHT);
-		} while (Math.sqrt(Math.pow(x - player.getX(), 2) + Math.pow(y - player.getY(), 2)) < 80);
+			if(Math.sqrt(Math.pow(x - player.getX(), 2) + Math.pow(y - player.getY(), 2)) < 80)
+				continue;
+			Rectangle rect = new Rectangle(x-8, y-8, 16, 16);
+			if(!collisionWithWall(rect))
+				break;
+		}
 		Enemy robot = new Enemy(x, y);
 		enemies.add(robot);
 		robot.draw();
@@ -473,36 +480,20 @@ public class Game {
 	public void enemyMovement() {
 		for (int i = 0; i < enemies.size(); i++) {
 			Enemy enemy = enemies.get(i);
-			// checks position relative to player then moves enemy
-			if (enemy.getX() < player.getX() && enemy.getY() < player.getY()) {
-				enemy.incrementX();
-				enemy.incrementY();
-				enemy.setRotation(315);
-			} else if (enemy.getX() > player.getX() && enemy.getY() < player.getY()) {
-				enemy.decrementX();
-				enemy.incrementY();
-				enemy.setRotation(225);
-			} else if (enemy.getX() < player.getX() && enemy.getY() > player.getY()) {
-				enemy.incrementX();
-				enemy.decrementY();
-				enemy.setRotation(45);
-			} else if (enemy.getX() > player.getX() && enemy.getY() == player.getY()) {
-				enemy.decrementX();
-				enemy.setRotation(180);
-			} else if (enemy.getX() == player.getX() && enemy.getY() > player.getY()) {
-				enemy.decrementY();
-				enemy.setRotation(90);
-			} else if (enemy.getX() < player.getX() && enemy.getY() == player.getY()) {
-				enemy.incrementX();
-				enemy.setRotation(0);
-			} else if (enemy.getX() == player.getX() && enemy.getY() < player.getY()) {
-				enemy.incrementY();
-				enemy.setRotation(270);
-			} else {
-				enemy.decrementX();
-				enemy.decrementY();
-				enemy.setRotation(135);
+			int dx = (int)Math.signum(player.getX() - enemy.getX());
+			int dy = (int)Math.signum(player.getY() - enemy.getY());
+			Rectangle rect = enemy.getRectangle();
+			rect.x += dx;
+			if(collisionWithWall(rect)) {
+				rect.x -= dx;
+				dx = 0;
 			}
+			rect.y += dy;
+			if(collisionWithWall(rect))
+				dy = 0;
+			if(dx != 0 || dy != 0)
+				enemy.setRotation(ExtraMath.PointDirection(0, 0, dx, dy));
+			enemy.move(dx, dy);
 			enemy.update();
 		}
 	}

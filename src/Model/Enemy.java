@@ -43,20 +43,9 @@ public class Enemy {
 			animationTimer -= 40;
 	}
 	
-	public void incrementX(){
-		this.x++;
-	}
-	
-	public void incrementY(){
-		this.y++;
-	}
-	
-	public void decrementX(){
-		this.x--;
-	}
-	
-	public void decrementY(){
-		this.y--;
+	public void move(int dx, int dy) {
+		x += dx;
+		y += dy;
 	}
 	
 	public void setX(int main){
