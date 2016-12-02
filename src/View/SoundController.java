@@ -12,12 +12,13 @@ import Controller.MainMenuController;
 
 public class SoundController {
 	public static Audio shoot;
+	public static Audio enemyShoot;
 	public static Audio step0;
 	public static Audio step1;
 	public static Audio hitEnemy;
 	public static Audio hitPlayer;
 	public static Audio music;
-	public static float musicVolume = 1f;
+	public static float musicVolume = 0.86f;
 	static int musicInstance;
 
 	public static void playSoundWithRandomPitch(Audio sound) {

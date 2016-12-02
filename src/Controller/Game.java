@@ -55,12 +55,20 @@ public class Game {
 			Player.texture1 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player1.png"));
 			Player.texture3 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/player3.png"));
 			Player.textureWidth = Player.texture0.getTextureWidth();
-			Bullet.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/spr_laser.png"));
+			Bullet.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/laser.png"));
+			Bullet.enemyTexture = TextureLoader.getTexture("PNG",
+					ResourceLoader.getResourceAsStream("art/laserGreen.png"));
 			Bullet.textureWidth = Bullet.texture.getTextureWidth();
 			Bullet.textureHeight = Bullet.texture.getTextureHeight();
 			Enemy.texture0 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot0.png"));
 			Enemy.texture1 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot1.png"));
 			Enemy.texture3 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/robot3.png"));
+			Enemy.textureShooter0 = TextureLoader.getTexture("PNG",
+					ResourceLoader.getResourceAsStream("art/robotShooter0.png"));
+			Enemy.textureShooter1 = TextureLoader.getTexture("PNG",
+					ResourceLoader.getResourceAsStream("art/robotShooter1.png"));
+			Enemy.textureShooter3 = TextureLoader.getTexture("PNG",
+					ResourceLoader.getResourceAsStream("art/robotShooter3.png"));
 			Enemy.textureWidth = Enemy.texture0.getTextureWidth();
 			Screen.background = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/floor.png"));
 			Wall.texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/wall.png"));
@@ -71,18 +79,25 @@ public class Game {
 			UI.health2 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar2.png"));
 			UI.health1 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar1.png"));
 			UI.health0 = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/healthBar0.png"));
-			UI.overheatFill = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/overheatFill.png"));
-			UI.overheatBack = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("art/overheatBack.png"));
-			SoundController.shoot = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/shootGun.wav"));
+			UI.overheatFill = TextureLoader.getTexture("PNG",
+					ResourceLoader.getResourceAsStream("art/overheatFill.png"));
+			UI.overheatBack = TextureLoader.getTexture("PNG",
+					ResourceLoader.getResourceAsStream("art/overheatBack.png"));
+			SoundController.shoot = AudioLoader.getAudio("WAV",
+					ResourceLoader.getResourceAsStream("sound/shootGun.wav"));
+			SoundController.enemyShoot = AudioLoader.getAudio("WAV",
+					ResourceLoader.getResourceAsStream("sound/enemyShoot.wav"));
 			SoundController.step0 = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/step0.wav"));
 			SoundController.step1 = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/step1.wav"));
-			SoundController.hitEnemy = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/hitEnemy.wav"));
-			SoundController.hitPlayer = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("sound/hitPlayer.wav"));
+			SoundController.hitEnemy = AudioLoader.getAudio("WAV",
+					ResourceLoader.getResourceAsStream("sound/hitEnemy.wav"));
+			SoundController.hitPlayer = AudioLoader.getAudio("WAV",
+					ResourceLoader.getResourceAsStream("sound/hitPlayer.wav"));
 			SoundController.music = AudioLoader.getStreamingAudio("OGG", ResourceLoader.getResource("sound/music.ogg"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		enemiesKilled = 0;
 	}
 
@@ -113,15 +128,15 @@ public class Game {
 		GL11.glOrtho(0, width, height, 0, 1, -1);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 	}
-	
+
 	private void loadLevel(int level) {
 		walls.clear();
 		enemies.clear();
 		bullets.clear();
 		enemiesKilled = 0;
 		timer = 0;
-		
-		switch(level) {
+
+		switch (level) {
 		case 1:
 			player = new Player(200, 150);
 			walls.add(new Wall(0, 80));
@@ -132,7 +147,7 @@ public class Game {
 			walls.add(new Wall(16, 96));
 			walls.add(new Wall(32, 96));
 			walls.add(new Wall(48, 96));
-			
+
 			walls.add(new Wall(336, 80));
 			walls.add(new Wall(352, 80));
 			walls.add(new Wall(368, 80));
@@ -141,7 +156,7 @@ public class Game {
 			walls.add(new Wall(352, 96));
 			walls.add(new Wall(368, 96));
 			walls.add(new Wall(384, 96));
-			
+
 			walls.add(new Wall(0, 192));
 			walls.add(new Wall(16, 192));
 			walls.add(new Wall(32, 192));
@@ -150,7 +165,7 @@ public class Game {
 			walls.add(new Wall(16, 208));
 			walls.add(new Wall(32, 208));
 			walls.add(new Wall(48, 208));
-			
+
 			walls.add(new Wall(336, 192));
 			walls.add(new Wall(352, 192));
 			walls.add(new Wall(368, 192));
@@ -173,7 +188,7 @@ public class Game {
 			walls.add(new Wall(256, 144));
 			walls.add(new Wall(240, 160));
 			walls.add(new Wall(256, 160));
-		break;
+			break;
 		case 2:
 			player = new Player(200, 150);
 			walls.add(new Wall(144, 96));
@@ -259,31 +274,31 @@ public class Game {
 			walls.add(new Wall(336, 208));
 			walls.add(new Wall(336, 224));
 			walls.add(new Wall(336, 240));
-		break;
+			break;
 		case 3:
 			player = new Player(300, 200);
-			for(int i = 0; i < 50; i++) {
+			for (int i = 0; i < 50; i++) {
 				int newX = 0;
 				int newY = 0;
-				while(true) {
-					newX = (int)Math.floor(Math.random() * WIDTH / 16.0) * 16;
-					newY = (int)Math.floor(Math.random() * HEIGHT / 16.0) * 16;
+				while (true) {
+					newX = (int) Math.floor(Math.random() * WIDTH / 16.0) * 16;
+					newY = (int) Math.floor(Math.random() * HEIGHT / 16.0) * 16;
 					Rectangle rect = new Rectangle(newX, newY, 16, 16);
-					if(rect.contains(player.getRectangle()))
+					if (rect.contains(player.getRectangle()))
 						continue;
 					boolean matchesAnother = false;
-					for(int j = 0; j < i; j++) {
-						if(newX == walls.get(j).getX() && newY == walls.get(j).getY()) {
+					for (int j = 0; j < i; j++) {
+						if (newX == walls.get(j).getX() && newY == walls.get(j).getY()) {
 							matchesAnother = true;
 							break;
 						}
 					}
-					if(!matchesAnother)
+					if (!matchesAnother)
 						break;
 				}
 				walls.add(new Wall(newX, newY));
 			}
-				
+
 			break;
 		default:
 			player = new Player(300, 200);
@@ -303,46 +318,44 @@ public class Game {
 			/*******************
 			 * GAME LOOP
 			 **************************************************/
-			
-			//moved sound controller here because
-			//the music would play for one frame before
-			//it cut off if disabled before starting game
+
+			// moved sound controller here because
+			// the music would play for one frame before
+			// it cut off if disabled before starting game
 			SoundController.continueMusic();
-			
-			
+
 			// moves player then checks relative position of player then moves
 			// enemy
 			playerMovement();
 			enemyMovement();
 
 			// timer increases every frame aka 60/sec
-			if(enemiesKilled + enemies.size() < 20 || level == 4) {
-				if (timer < 1800) { //30 secs
+			if (enemiesKilled + enemies.size() < 20 || level == 4) {
+				if (timer < 1800) { // 30 secs
 					if (timer % 50 == 0)
 						enemySpawn();
-				} else if (timer < 3600) { //60 secs
+				} else if (timer < 3600) { // 60 secs
 					if (timer % 25 == 0)
 						enemySpawn();
-				} else if (timer < 5400){ //90 secs
+				} else if (timer < 5400) { // 90 secs
 					if (timer % 10 == 0)
 						enemySpawn();
-				}
-				else{
+				} else {
 					if (timer % 7 == 0)
 						enemySpawn();
 				}
 			}
 
 			player.update();
-			
+
 			// if left click is down shoot
 			if (Mouse.isButtonDown(0)) {
 				Bullet bullet = player.shoot();
-				if(bullet != null)
+				if (bullet != null)
 					bullets.add(bullet);
 			}
 
-			for(int repeat = 0; repeat < 2; repeat++) {
+			for (int repeat = 0; repeat < 2; repeat++) {
 				for (int i = 0; i < bullets.size(); i++) {
 					bullets.get(i).incrementValue();
 				}
@@ -352,19 +365,20 @@ public class Game {
 			boolean wasHit = checkPlayerHit();
 			if (wasHit) {
 				boolean damageAccepted = player.takeDamage();
-				if(damageAccepted)
+				if (damageAccepted)
 					SoundController.playSoundWithRandomPitch(SoundController.hitPlayer);
 				else
 					SoundController.playSoundWithRandomPitch(SoundController.hitEnemy);
 			}
 
 			if (player.getHealth() <= 0) {
-				level = 0; //reset the levels back to zero if want to play again
+				level = 0; // reset the levels back to zero if want to play
+							// again
 				gameOver();
 				break;
 			}
-			if(enemiesKilled >= 20) {
-				if(level < 4) {
+			if (enemiesKilled >= 20) {
+				if (level < 4) {
 					level++;
 					loadLevel(level);
 				}
@@ -402,7 +416,7 @@ public class Game {
 				AL.destroy();
 				System.exit(0);
 			}
-			
+
 		}
 	}
 
@@ -429,54 +443,58 @@ public class Game {
 		}
 		Rectangle playerRectangle = player.getRectangle();
 		playerRectangle.x += dx;
-		if(collisionWithWall(playerRectangle))
+		if (collisionWithWall(playerRectangle))
 			dx = 0;
 		playerRectangle = player.getRectangle();
 		playerRectangle.y += dy;
-		if(collisionWithWall(playerRectangle))
+		if (collisionWithWall(playerRectangle))
 			dy = 0;
 		player.move(dx, dy);
 	}
 
 	public void enemySpawn() {
 		int x, y;
-		while(true) {// an attempt to not spawn the robot on the enemy
+		while (true) {// an attempt to not spawn the robot on the enemy
 			x = (int) Math.floor(Math.random() * WIDTH);
 			y = (int) Math.floor(Math.random() * HEIGHT);
-			if(Math.sqrt(Math.pow(x - player.getX(), 2) + Math.pow(y - player.getY(), 2)) < 80)
+			if (Math.sqrt(Math.pow(x - player.getX(), 2) + Math.pow(y - player.getY(), 2)) < 80)
 				continue;
-			Rectangle rect = new Rectangle(x-8, y-8, 16, 16);
-			if(!collisionWithWall(rect))
+			Rectangle rect = new Rectangle(x - 8, y - 8, 16, 16);
+			if (!collisionWithWall(rect))
 				break;
 		}
 		Enemy robot = new Enemy(x, y);
+		if (level >= 2 && Math.random() > 0.5)
+			robot.declareAsShooter();
 		enemies.add(robot);
 		robot.draw();
 	}
-	
+
 	public void performBulletCollisions() {
 		// despawning hit enemies
 		for (int i = 0; i < bullets.size(); i++) {
 			boolean removeBullet = false;
-			Rectangle bulletRectangle = bullets.get(i).getRectangle(); 
-			for (int j = 0; j < enemies.size(); j++) {
-				if(bulletRectangle.intersects(enemies.get(j).getRectangle())) {
-					SoundController.playSoundWithRandomPitch(SoundController.hitEnemy);
-					enemies.remove(j);// remove enemy if hit
-					enemiesKilled++;
-					removeBullet = true;
-					break;// move on to the next bullet
-				}
-			}
-			if(!removeBullet) {
-				for(int j = 0; j < walls.size(); j++) {
-					if(bulletRectangle.intersects(walls.get(j).getRectangle())) {
+			Rectangle bulletRectangle = bullets.get(i).getRectangle();
+			if (!bullets.get(i).isFromEnemy()) {
+				for (int j = 0; j < enemies.size(); j++) {
+					if (bulletRectangle.intersects(enemies.get(j).getRectangle())) {
+						SoundController.playSoundWithRandomPitch(SoundController.hitEnemy);
+						enemies.remove(j);// remove enemy if hit
+						enemiesKilled++;
 						removeBullet = true;
 						break;// move on to the next bullet
 					}
 				}
 			}
-			if(removeBullet) {
+			if (!removeBullet) {
+				for (int j = 0; j < walls.size(); j++) {
+					if (bulletRectangle.intersects(walls.get(j).getRectangle())) {
+						removeBullet = true;
+						break;// move on to the next bullet
+					}
+				}
+			}
+			if (removeBullet) {
 				bullets.remove(i);// destroy bullet
 				i--;// don't skip the next bullet
 			}
@@ -486,7 +504,7 @@ public class Game {
 		// conservation
 		Rectangle gameArea = new Rectangle(-100, -100, WIDTH + 200, HEIGHT + 200);
 		for (int i = 0; i < bullets.size(); i++) {
-			if(!gameArea.contains(bullets.get(i).getCurrentX(), bullets.get(i).getCurrentY()))
+			if (!gameArea.contains(bullets.get(i).getCurrentX(), bullets.get(i).getCurrentY()))
 				bullets.remove(i);
 		}
 	}
@@ -494,28 +512,36 @@ public class Game {
 	public void enemyMovement() {
 		for (int i = 0; i < enemies.size(); i++) {
 			Enemy enemy = enemies.get(i);
-			int dx = (int)Math.signum(player.getX() - enemy.getX());
-			int dy = (int)Math.signum(player.getY() - enemy.getY());
+			float dx = Math.signum(player.getX() - enemy.getX());
+			float dy = Math.signum(player.getY() - enemy.getY());
 			Rectangle rect = enemy.getRectangle();
 			rect.x += dx;
-			if(collisionWithWall(rect)) {
+			if (collisionWithWall(rect)) {
 				rect.x -= dx;
 				dx = 0;
 			}
 			rect.y += dy;
-			if(collisionWithWall(rect))
+			if (collisionWithWall(rect))
 				dy = 0;
-			if(dx != 0 || dy != 0)
+			if (dx != 0 || dy != 0)
 				enemy.setRotation(ExtraMath.PointDirection(0, 0, dx, dy));
+			if(enemy.isShooter()) {
+				dx /= 2f;
+				dy /= 2f;
+			}
 			enemy.move(dx, dy);
 			enemy.update();
+			if (enemy.isReadyToShoot()) {
+				SoundController.playSoundWithRandomPitch(SoundController.enemyShoot);
+				bullets.add(enemy.shootAt(player.getX(), player.getY()));
+			}
 		}
 	}
 
 	public void gameOver() {
-		try{
+		try {
 			Display.destroy();
-		}catch(Exception e){
+		} catch (Exception e) {
 			System.out.println("Error when destroying display.");
 		}
 	}
@@ -525,9 +551,32 @@ public class Game {
 
 		Rectangle playerRectangle = player.getRectangle();
 		for (int i = 0; i < enemies.size(); i++) {
-			if(playerRectangle.contains(enemies.get(i).getX(), enemies.get(i).getY())) {
+			if (playerRectangle.contains(enemies.get(i).getX(), enemies.get(i).getY())) {
 				enemies.remove(i);
 				isHit = true;
+			}
+		}
+
+		for (int i = 0; i < bullets.size(); i++) {
+			boolean removeBullet = false;
+			Rectangle bulletRectangle = bullets.get(i).getRectangle();
+			if (bullets.get(i).isFromEnemy()) {
+				if (bulletRectangle.intersects(player.getRectangle())) {
+					isHit = true;
+					removeBullet = true;
+				}
+			}
+			if (!removeBullet) {
+				for (int j = 0; j < walls.size(); j++) {
+					if (bulletRectangle.intersects(walls.get(j).getRectangle())) {
+						removeBullet = true;
+						break;// move on to the next bullet
+					}
+				}
+			}
+			if (removeBullet) {
+				bullets.remove(i);// destroy bullet
+				i--;// don't skip the next bullet
 			}
 		}
 
@@ -536,12 +585,14 @@ public class Game {
 
 	/**
 	 * Check if the rectangle overlaps any wall
-	 * @param      rectangle  The rectangle
-	 * @return     True if overlapping any wall
+	 * 
+	 * @param rectangle
+	 *            The rectangle
+	 * @return True if overlapping any wall
 	 */
 	public boolean collisionWithWall(Rectangle rectangle) {
-		for(int i = 0; i < walls.size(); i++) {
-			if(walls.get(i).getRectangle().intersects(rectangle))
+		for (int i = 0; i < walls.size(); i++) {
+			if (walls.get(i).getRectangle().intersects(rectangle))
 				return true;
 		}
 		return false;

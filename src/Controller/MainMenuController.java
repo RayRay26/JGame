@@ -111,7 +111,7 @@ public class MainMenuController {
 		SoundController.musicVolume = 0f;
 		if (isMusicOn) {
 			musicToggle.setText("Music ON");
-			SoundController.musicVolume = 1f;
+			SoundController.musicVolume = 0.86f;
 		}
 	}
 

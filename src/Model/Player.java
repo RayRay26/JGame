@@ -103,6 +103,7 @@ public class Player {
 			for(int repeat = 0; repeat < 4; repeat++) {
 				bullet.incrementValue();
 			}
+			SoundController.playSoundWithRandomPitch(SoundController.shoot);
 			return bullet;
 		}
 		return null;

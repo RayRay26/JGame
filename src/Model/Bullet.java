@@ -13,13 +13,15 @@ import application.ExtraMath;
 
 public class Bullet {
 	public static Texture texture;
+	public static Texture enemyTexture;
 	public static int textureWidth;
 	public static int textureHeight;
-	
+
+	private boolean isFromEnemy = false;
 	private double bulletSpeed = 6.0;
 	private double currentX, currentY, speedX, speedY;
-	
-	public Bullet(int cx, int cy, int mx, int my){
+
+	public Bullet(int cx, int cy, int mx, int my) {
 		this.currentX = cx;
 		this.currentY = cy;
 		double xDiff = mx - cx;
@@ -27,32 +29,48 @@ public class Bullet {
 		double distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
 		speedX = xDiff * bulletSpeed / distance;
 		speedY = yDiff * bulletSpeed / distance;
-		SoundController.playSoundWithRandomPitch(SoundController.shoot);
 	}
+
 	public int getCurrentX() {
-		return (int)currentX;
+		return (int) currentX;
 	}
-	
+
 	public int getCurrentY() {
-		return (int)currentY;
+		return (int) currentY;
 	}
 
 	public Rectangle getRectangle() {
-		return new Rectangle((int)(currentX - textureHeight / 2f), (int)(currentY - textureHeight / 2f), textureHeight, textureHeight);
+		return new Rectangle((int) (currentX - textureHeight / 2f), (int) (currentY - textureHeight / 2f),
+				textureHeight, textureHeight);
 	}
-	
-	public void incrementValue(){
-		currentX += speedX / 2f;
-		currentY += speedY / 2f;
+
+	public boolean isFromEnemy() {
+		return isFromEnemy;
 	}
-	
+
+	public void setFromEnemy(boolean value) {
+		isFromEnemy = value;
+	}
+
+	public void incrementValue() {
+		if (isFromEnemy) {
+			currentX += speedX / 4f;
+			currentY += speedY / 4f;
+		} else {
+			currentX += speedX / 2f;
+			currentY += speedY / 2f;
+		}
+	}
+
 	public void draw() {
-		texture.bind();
-		
+		Texture textureToDraw = texture;
+		if (isFromEnemy)
+			textureToDraw = enemyTexture;
+
 		double angle = ExtraMath.PointDirection(0, 0, speedX, speedY);
 		GL11.glTranslated(currentX, currentY, 0);
 		GL11.glRotated(angle, 0, 0, -1);
-		Screen.drawSprite(texture, -textureWidth * 3f / 4f, -textureHeight / 2f, textureWidth, textureHeight);
+		Screen.drawSprite(textureToDraw, -textureWidth * 3f / 4f, -textureHeight / 2f, textureWidth, textureHeight);
 		Screen.resetToIdentity();
 	}
 }
