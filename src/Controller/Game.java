@@ -45,7 +45,7 @@ public class Game {
 	private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 	private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
 	private ArrayList<Wall> walls = new ArrayList<Wall>();
-	private int timer = 0;
+	public static int timer = 0;
 
 	public void init() {
 
@@ -303,22 +303,32 @@ public class Game {
 			/*******************
 			 * GAME LOOP
 			 **************************************************/
-
+			
+			//moved sound controller here because
+			//the music would play for one frame before
+			//it cut off if disabled before starting game
+			SoundController.continueMusic();
+			
+			
 			// moves player then checks relative position of player then moves
 			// enemy
 			playerMovement();
 			enemyMovement();
 
 			// timer increases every frame aka 60/sec
-			if(enemiesKilled + enemies.size() < 20) {
-				if (timer < 6000) {
-					if (timer % 100 == 0)
-						enemySpawn();
-				} else if (timer < 8000) {
+			if(enemiesKilled + enemies.size() < 20 || level == 4) {
+				if (timer < 1800) { //30 secs
 					if (timer % 50 == 0)
 						enemySpawn();
-				} else {
+				} else if (timer < 3600) { //60 secs
 					if (timer % 25 == 0)
+						enemySpawn();
+				} else if (timer < 5400){ //90 secs
+					if (timer % 10 == 0)
+						enemySpawn();
+				}
+				else{
+					if (timer % 7 == 0)
 						enemySpawn();
 				}
 			}
@@ -349,7 +359,9 @@ public class Game {
 			}
 
 			if (player.getHealth() <= 0) {
+				level = 0; //reset the levels back to zero if want to play again
 				gameOver();
+				break;
 			}
 			if(enemiesKilled >= 20) {
 				if(level < 4) {
@@ -391,7 +403,6 @@ public class Game {
 				System.exit(0);
 			}
 			
-			SoundController.continueMusic();
 		}
 	}
 
@@ -502,7 +513,11 @@ public class Game {
 	}
 
 	public void gameOver() {
-		loadLevel(level);
+		try{
+			Display.destroy();
+		}catch(Exception e){
+			System.out.println("Error when destroying display.");
+		}
 	}
 
 	public boolean checkPlayerHit() {

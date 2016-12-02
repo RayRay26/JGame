@@ -17,6 +17,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
@@ -26,15 +27,19 @@ import javafx.stage.Stage;
 
 public class MainMenuController {
 
+	public static boolean isSFXOn = true;
+	public static boolean isMusicOn = true;
 	Stage stage = new Stage();
 	Scene scene;
 	Parent root;
 	@FXML
 	Text/* Field */ txtField;
 	@FXML
-	Button levelsButton, endlessButton, helpButton, backButton;
+	Button levelsButton, endlessButton, helpButton, backButton, endGameButton, scoreButton;
 	@FXML
 	ToggleButton sfxToggle, musicToggle;
+	@FXML
+	Label score;
 
 	private MainMenu main;
 
@@ -42,22 +47,29 @@ public class MainMenuController {
 	public void setMain(MainMenu mainIn) {
 		main = mainIn;
 	}
-
-	public void handleButton() {
-
+	
+	public void gameOver() {
+		stage = (Stage) helpButton.getScene().getWindow();
+		try {
+			root = FXMLLoader.load(getClass().getResource("/View/GameOver.fxml"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		scene = new Scene(root);
+		stage.setScene(scene);
 	}
 
-	// TODO
-	// Fill in what button calls should do
 	public void handleLevelsButton() {
 		Game game = new Game();
 		game.run();
+		gameOver();
 	}
 
 	public void handleEndlessButton() {
 		Game game = new Game();
 		Game.level = 4;
 		game.run();
+		gameOver();
 	}
 
 	public void handleHelpButton() {
@@ -84,8 +96,7 @@ public class MainMenuController {
 		stage.setScene(scene);
 	}
 
-	public static boolean isSFXOn = true;
-	public static boolean isMusicOn = true;
+
 
 	public void handleSFXToggle() {
 		isSFXOn = !isSFXOn;
@@ -104,4 +115,22 @@ public class MainMenuController {
 		}
 	}
 
+	public void handleEndGameButton(){
+		Game.level = 0;
+		stage = (Stage) endGameButton.getScene().getWindow();
+		try {
+			root = FXMLLoader.load(getClass().getResource("/View/MainMenuView.fxml"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		scene = new Scene(root);
+		stage.setScene(scene);
+		
+	}
+	
+	public void handleScore(){
+		score.setText("\t\tyou survived " + Integer.toString(Game.timer/60) + " seconds");
+	}
+
+	
 }
